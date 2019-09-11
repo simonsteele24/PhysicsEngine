@@ -56,41 +56,41 @@ public class Particle2D : MonoBehaviour
 
     // The following function calculates the new position of the
     // particle using the Explicit Locomotion system
-    void updatePositionEulerExplicit(float deltaTime)
+    void updatePositionEulerExplicit(float dt)
     {
-        position += velocity * deltaTime;
-        velocity += acceleration * deltaTime;
+        position += velocity * dt;
+        velocity += acceleration * dt;
     }
 
 
 
     // The following function calculates the new position of the
     // particle using the Kinematic Locomotion system
-    void updatePositionKinematic(float deltaTime)
+    void updatePositionKinematic(float dt)
     {
-        position += velocity * deltaTime + 0.5f * acceleration * Mathf.Pow(deltaTime, 2);
-        velocity += acceleration * deltaTime;
+        position += velocity * dt + 0.5f * acceleration * Mathf.Pow(dt, 2);
+        velocity += acceleration * dt;
     }
 
 
 
     // The following function calculates the new rotation of the
     // particle using the Explicit Locomotion system
-    void updateRotationEulerExplicit(float deltaTime)
+    void updateRotationEulerExplicit(float dt)
     {
-        rotation += angularVelocity * deltaTime;
-        angularVelocity += angularAcceleration * deltaTime;
+        rotation += angularVelocity * dt;
+        angularVelocity += angularAcceleration * dt;
     }
 
 
 
     // The following function calculates the new rotation of the
     // particle using the Kinematic Locomotion system
-    void updateRotationKinematic(float deltaTime)
+    void updateRotationKinematic(float dt)
     {
-        rotation += angularVelocity * deltaTime + 0.5f * angularAcceleration * Mathf.Pow(deltaTime, 2);
+        rotation += angularVelocity * dt + 0.5f * angularAcceleration * Mathf.Pow(dt, 2);
 
-        angularVelocity += angularAcceleration * deltaTime;
+        angularVelocity += angularAcceleration * dt;
     }
 
 
