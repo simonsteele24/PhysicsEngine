@@ -18,13 +18,39 @@ public class Particle2D : MonoBehaviour
     public Vector2 velocity;
     public Vector2 acceleration;
 
+    const float GRAV_CONSTANT = -10;
+
     // Floats
     public float rotation;
     public float angularVelocity;
     public float angularAcceleration;
 
+    [Range(0, Mathf.Infinity)]
+    public float mass;
+
+    private Vector2 force;
+
+    private float invMass;
+
+    private float Mass
+    {
+        set
+        {
+            mass = mass > 0.0f ? mass: 0.0f;
+            invMass = mass > 0.0f ? 1.0f / mass : 0.0f;
+        }
+
+        get
+        {
+            return mass;
+        }
+    }
 
 
+    private void Start()
+    {
+        Mass = mass;
+    }
 
     private void FixedUpdate()
     {
@@ -42,6 +68,8 @@ public class Particle2D : MonoBehaviour
             updateRotationKinematic(Time.deltaTime);
         }
 
+        UpdateAcceleration();
+
         // Change position to the positional variables
         transform.position = position;
 
@@ -49,7 +77,7 @@ public class Particle2D : MonoBehaviour
         transform.eulerAngles = new Vector3(0, 0, rotation);
 
         // Demonstrate movement of particle
-        DemonstrateParticleMovement();
+        //DemonstrateParticleMovement();
     }
 
 
@@ -101,5 +129,29 @@ public class Particle2D : MonoBehaviour
     {
         acceleration.x = -Mathf.Sin(Time.time);
         acceleration.y = -Mathf.Cos(Time.time);
+    }
+
+
+
+    void AddForce(Vector2 newForce)
+    {
+        // D'Almbert
+        force += newForce;
+    }
+
+
+
+    void UpdateAcceleration()
+    {
+        // Convert force to acceleration
+        acceleration = force * invMass;
+
+        force.Set(0.0f,0.0f);
+    }
+
+    private void Update()
+    {
+        AddForce(ForceGenerator.GenerateForce_Gravtity(mass,GRAV_CONSTANT, Vector3.up));
+        AddForce(ForceGenerator.GenerateForce_spring(position, new Vector2(0, 0), 5, 8.0f));
     }
 }
