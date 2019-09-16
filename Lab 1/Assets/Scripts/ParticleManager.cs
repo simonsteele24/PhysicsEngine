@@ -1,7 +1,7 @@
 ﻿/*
 Author: Simon Steele
 Class: GPR-350-101
-Assignment: Lab 1
+Assignment: Lab 2
 Certification of Authenticity: We certify that this
 assignment is entirely our own work.
 */
