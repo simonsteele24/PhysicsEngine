@@ -41,12 +41,15 @@ public class ForceGenerator : MonoBehaviour
     {
         Vector2 f_friction_s = f_normal * frictionCoefficient_static;
 
+        // Is the friction more than the opposing force?
         if (f_friction_s.magnitude < f_opposing.magnitude)
         {
+            // Yes, then return the normal with the coefficient static
             return -frictionCoefficient_static * f_normal;
         }
         else
         {
+            // No, then return the opposing force
             return -f_opposing;
         }
     }
@@ -79,5 +82,34 @@ public class ForceGenerator : MonoBehaviour
         float f_spring = -springStiffnessCoefficient * ((anchorPosition - particlePosition).magnitude - springRestingLength);
 
         return dir * f_spring;
+    }
+
+
+
+    // The following functions adds a buoyancy force based on particle position, the water's height,
+    // the max depth of the water, the volume of the water, and the liquid density of the water
+    public static Vector2 GenerateForce_buoyancy(Vector2 particlePosition, float waterHeight, float maxDepth, float volume, float liquidDensity)
+    {
+        float depth = particlePosition.y;
+        Vector2 force = new Vector2(0, 0);
+
+        // Is the particle out of water?
+        if (depth >= waterHeight + maxDepth)
+        {
+            // If yes, then don't add the force
+            return force;
+        }
+
+        // Is the particle at the bottom of the water
+        if (depth <= waterHeight - maxDepth)
+        {
+            // If yes, then apply a force as if its the bottom of the water
+            force.y = liquidDensity * volume;
+            return force;
+        }
+
+        // If all coniditons are returned false, then assume the cube is partially submerged
+        force.y = liquidDensity * volume * (depth - maxDepth - waterHeight) / 2 * maxDepth;
+        return force;
     }
 }

@@ -7,18 +7,38 @@ assignment is entirely our own work.
 */
 
 using UnityEngine;
+using UnityEditor;
 
 public class Particle2D : MonoBehaviour
 {
-    // Locomotion System Enum variables
-    public LocomotionSystemType LocomotionSystem;
+    // Force Type Enum variables
+    public ForceType[] forcesEnactedOnParticle;
+
+    // Force-specific variables
+    public float gravitationalConstant;
+    public Vector2 surfaceNormalUnit;
+    public Vector2 normal;
+    public Vector2 opposingForce;
+    public float frictionCoefficient_static;
+    public float frictionCoefficient_kinetic;
+    public Vector2 fluidVelocity;
+    public float fluidDensity;
+    public float objectCrossection;
+    public float dragCoefficient;
+    public Vector2 anchorPosition;
+    public float springRestingLength;
+    public float springStiffness;
+    public float waterHeight;
+    public float maxDepth;
+    public float volume;
+    public float liquidDensity;
 
     // Vector2's
     public Vector2 position;
     public Vector2 velocity;
     public Vector2 acceleration;
 
-    const float GRAV_CONSTANT = -10;
+    private Vector2 WORLD_UP = Vector2.up;
 
     // Floats
     public float rotation;
@@ -54,19 +74,8 @@ public class Particle2D : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Has the user chosen to use the Euler Explicit Locomotion system?
-        if (LocomotionSystem == LocomotionSystemType.EulerExplicit)
-        {
-            // If yes, then apply all explicit formulas for rotation and translation
-            updateRotationEulerExplicit(Time.fixedDeltaTime);
-            updatePositionEulerExplicit(Time.fixedDeltaTime);
-        }
-        else
-        {
-            // If no, then apply all kinematic formulas for rotation and translation
-            updatePositionKinematic(Time.deltaTime);
-            updateRotationKinematic(Time.deltaTime);
-        }
+        updateRotationEulerExplicit(Time.fixedDeltaTime);
+        updatePositionEulerExplicit(Time.fixedDeltaTime);
 
         UpdateAcceleration();
 
@@ -75,9 +84,6 @@ public class Particle2D : MonoBehaviour
 
         // Change rotation to the rotational variables
         transform.eulerAngles = new Vector3(0, 0, rotation);
-
-        // Demonstrate movement of particle
-        //DemonstrateParticleMovement();
     }
 
 
@@ -149,9 +155,47 @@ public class Particle2D : MonoBehaviour
         force.Set(0.0f,0.0f);
     }
 
+
+
     private void Update()
     {
-        AddForce(ForceGenerator.GenerateForce_Gravtity(mass,GRAV_CONSTANT, Vector3.up));
-        AddForce(ForceGenerator.GenerateForce_spring(position, new Vector2(0, 0), 5, 8.0f));
+        // The following code goes through all forces that are supposed to be added
+        // and determines their force type and acts appropriately
+        for (int i = 0; i < forcesEnactedOnParticle.Length; i++)
+        {
+            switch (forcesEnactedOnParticle[i])
+            {
+                case ForceType.Gravity:
+                    AddForce(ForceGenerator.GenerateForce_Gravtity(mass,gravitationalConstant,WORLD_UP));
+                    break;
+                case ForceType.Normal:
+                    AddForce(ForceGenerator.GenerateForce_normal(new Vector2(0, gravitationalConstant), surfaceNormalUnit));
+                    break;
+                case ForceType.Sliding:
+                    AddForce(ForceGenerator.GenerateForce_sliding(new Vector2(0, gravitationalConstant), normal));
+                    break;
+                case ForceType.Static_Friction:
+                    AddForce(ForceGenerator.GenerateForce_friction_static(normal, opposingForce, frictionCoefficient_static));
+                    break;
+                case ForceType.Kinetic_Friction:
+                    AddForce(ForceGenerator.GenerateForce_friction_kinetic(normal, velocity, frictionCoefficient_kinetic));
+                    break;
+                case ForceType.Drag:
+                    AddForce(ForceGenerator.GenerateForce_drag(velocity, fluidVelocity, fluidDensity, objectCrossection, dragCoefficient));
+                    break;
+                case ForceType.Spring:
+                    AddForce(ForceGenerator.GenerateForce_spring(position, anchorPosition, springRestingLength, springStiffness));
+                    break;
+                case ForceType.Buoyency:
+                    AddForce(ForceGenerator.GenerateForce_buoyancy(position, waterHeight, maxDepth, volume, liquidDensity));
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }
+
+
+
+
