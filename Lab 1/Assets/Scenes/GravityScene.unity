@@ -361,5 +361,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3851740812909138652, guid: 034ebda6c6a3d1743813e71d3725e313,
+        type: 3}
+      propertyPath: forcesEnactedOnParticle.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 034ebda6c6a3d1743813e71d3725e313, type: 3}

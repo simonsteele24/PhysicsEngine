@@ -418,7 +418,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36582e7c98033944388cb060afff6cf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  forceEnactedOnParticle: 0700000000000000
+  forcesEnactedOnParticle: 0700000000000000
+  inertiaShapeType: 0
   gravitationalConstant: -2
   surfaceNormalUnit: {x: 0, y: 0}
   normal: {x: 0, y: 0}

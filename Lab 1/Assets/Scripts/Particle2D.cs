@@ -13,6 +13,7 @@ public class Particle2D : MonoBehaviour
 {
     // Force Type Enum variables
     public ForceType[] forcesEnactedOnParticle;
+    public ShapeType inertiaShapeType;
 
     // Force-specific variables
     public float gravitationalConstant;
@@ -45,6 +46,9 @@ public class Particle2D : MonoBehaviour
     public float angularVelocity;
     public float angularAcceleration;
 
+    private float intertia;
+    private float inverseInertia;
+
     [Range(0, Mathf.Infinity)]
     public float mass;
 
@@ -70,6 +74,12 @@ public class Particle2D : MonoBehaviour
     private void Start()
     {
         Mass = mass;
+
+        switch(inertiaShapeType)
+        {
+
+        }
+
     }
 
     private void FixedUpdate()
