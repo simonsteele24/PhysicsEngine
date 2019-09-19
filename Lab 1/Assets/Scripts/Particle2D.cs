@@ -1,13 +1,12 @@
 ﻿/*
 Author: Simon Steele
 Class: GPR-350-101
-Assignment: Lab 2
+Assignment: Lab 3
 Certification of Authenticity: We certify that this
 assignment is entirely our own work.
 */
 
 using UnityEngine;
-using UnityEditor;
 
 public class Particle2D : MonoBehaviour
 {
@@ -54,10 +53,7 @@ public class Particle2D : MonoBehaviour
             invMass = mass > 0.0f ? 1.0f / mass : 0.0f;
         }
 
-        get
-        {
-            return mass;
-        }
+        get { return mass; }
     }
 
     private float Inertia
@@ -68,42 +64,37 @@ public class Particle2D : MonoBehaviour
             inverseInertia = inertia > 0.0f ? 1.0f / inertia : 0.0f;
         }
 
-        get
-        {
-            return inertia;
-        }
+        get { return inertia; }
     }
+
+
 
 
     private void Start()
     {
+        // Set the mass
         Mass = mass;
 
-        switch(inertiaShapeType)
-        {
-            case ShapeType.Square:
-                inertia = BOX_INERTIA_CONSTANT * Mass * (Mathf.Pow(boxDimensions.x, 2) + Mathf.Pow(boxDimensions.y, 2));
-                break;
-            case ShapeType.Circle:
-                inertia = DISK_INERTIA_CONSTANT * Mass * Mathf.Pow(radius, 2);
-                break;
-            case ShapeType.Disk:
-                inertia = DISK_INERTIA_CONSTANT * Mass * (Mathf.Pow(innerRadius, 2) + Mathf.Pow(outerRadius, 2));
-                break;
-            case ShapeType.ThinRod:
-                inertia = BOX_INERTIA_CONSTANT * Mass * length;
-                break;
-        }
-
+        // Calculate and set the inertia
+        CalculateInertia(inertiaShapeType);
         Inertia = inertia;
-
     }
+
+
 
     private void FixedUpdate()
     {
+        // Apply all torque forces to particle
+        for (int i = 0; i < torqueForces.Length; i++)
+        {
+            ApplyTorque(torqueForces[i].force, torqueForces[i].position);
+        }
+
+        // Update postion and velocity
         updateRotationEulerExplicit(Time.fixedDeltaTime);
         updatePositionEulerExplicit(Time.fixedDeltaTime);
 
+        // Update accelerations
         UpdateAcceleration();
         UpdateAngularAcceleration();
 
@@ -182,25 +173,54 @@ public class Particle2D : MonoBehaviour
         force.Set(0.0f,0.0f);
     }
 
+
+
     void UpdateAngularAcceleration()
     {
+        // Calculate angular velocity
+        // based on overal torque and inertia
         angularAcceleration = torque * inverseInertia;
         torque = 0;
     }
 
 
+
     public void ApplyTorque(Vector2 force, Vector2 location)
     {
+        // Get the cross product of the location and force
         Vector3 cross = Vector3.Cross(force, location);
+
+        // Add the new toque with the torque accumulator
         torque += cross.z;
     }
 
 
-    private void Update()
+
+    void CalculateInertia(ShapeType shapeOfParticle)
     {
-        for (int i = 0; i < torqueForces.Length; i++)
+        // The following code checks the shape of the
+        // object and calculate the inertia
+        switch (shapeOfParticle)
         {
-            ApplyTorque(torqueForces[i].force, torqueForces[i].position);
+            // Square Inertia Calculation
+            case ShapeType.Square:
+                inertia = BOX_INERTIA_CONSTANT * Mass * (Mathf.Pow(boxDimensions.x, 2) + Mathf.Pow(boxDimensions.y, 2));
+                break;
+
+            // Circle Inertia Calculation
+            case ShapeType.Circle:
+                inertia = DISK_INERTIA_CONSTANT * Mass * Mathf.Pow(radius, 2);
+                break;
+
+            // Disk Inertia Calculation
+            case ShapeType.Disk:
+                inertia = DISK_INERTIA_CONSTANT * Mass * (Mathf.Pow(innerRadius, 2) + Mathf.Pow(outerRadius, 2));
+                break;
+
+            // Rod Inertia Calculation
+            case ShapeType.ThinRod:
+                inertia = BOX_INERTIA_CONSTANT * Mass * length;
+                break;
         }
     }
 }

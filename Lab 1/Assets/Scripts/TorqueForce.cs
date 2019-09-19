@@ -1,8 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿/*
+Author: Simon Steele
+Class: GPR-350-101
+Assignment: Lab 3
+Certification of Authenticity: We certify that this
+assignment is entirely our own work.
+*/
+
 using UnityEngine;
 
-[System.Serializable]
+// The following class is meant to represent
+// an angular force (torque) to a given object
 public class TorqueForce : MonoBehaviour
 {
     public Vector2 position;
