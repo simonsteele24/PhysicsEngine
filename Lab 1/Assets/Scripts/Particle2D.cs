@@ -12,49 +12,39 @@ using UnityEditor;
 public class Particle2D : MonoBehaviour
 {
     // Force Type Enum variables
-    public ForceType[] forcesEnactedOnParticle;
     public ShapeType inertiaShapeType;
+    public TorqueForce[] torqueForces;
 
-    // Force-specific variables
-    public float gravitationalConstant;
-    public Vector2 surfaceNormalUnit;
-    public Vector2 normal;
-    public Vector2 opposingForce;
-    public float frictionCoefficient_static;
-    public float frictionCoefficient_kinetic;
-    public Vector2 fluidVelocity;
-    public float fluidDensity;
-    public float objectCrossection;
-    public float dragCoefficient;
-    public Vector2 anchorPosition;
-    public float springRestingLength;
-    public float springStiffness;
-    public float waterHeight;
-    public float maxDepth;
-    public float volume;
-    public float liquidDensity;
+    // Inertia - specific variables
+    public Vector2 centreOfMass;
+    public Vector2 boxDimensions;
+    public float radius;
+    public float innerRadius;
+    public float outerRadius;
+    public float length;
+
 
     // Vector2's
     public Vector2 position;
     public Vector2 velocity;
     public Vector2 acceleration;
+    private Vector2 force;
 
+    // Constants
     private Vector2 WORLD_UP = Vector2.up;
+    const float BOX_INERTIA_CONSTANT = 1.0f / 12.0f;
+    const float DISK_INERTIA_CONSTANT = 1.0f / 2.0f;
 
     // Floats
     public float rotation;
     public float angularVelocity;
     public float angularAcceleration;
-
-    private float intertia;
+    private float inertia;
     private float inverseInertia;
-
-    [Range(0, Mathf.Infinity)]
-    public float mass;
-
-    private Vector2 force;
-
+    private float torque = 0;
+    [Range(0, Mathf.Infinity)] public float mass;
     private float invMass;
+
 
     private float Mass
     {
@@ -70,6 +60,20 @@ public class Particle2D : MonoBehaviour
         }
     }
 
+    private float Inertia
+    {
+        set
+        {
+            inertia = inertia > 0.0f ? inertia : 0.0f;
+            inverseInertia = inertia > 0.0f ? 1.0f / inertia : 0.0f;
+        }
+
+        get
+        {
+            return inertia;
+        }
+    }
+
 
     private void Start()
     {
@@ -77,8 +81,21 @@ public class Particle2D : MonoBehaviour
 
         switch(inertiaShapeType)
         {
-
+            case ShapeType.Square:
+                inertia = BOX_INERTIA_CONSTANT * Mass * (Mathf.Pow(boxDimensions.x, 2) + Mathf.Pow(boxDimensions.y, 2));
+                break;
+            case ShapeType.Circle:
+                inertia = DISK_INERTIA_CONSTANT * Mass * Mathf.Pow(radius, 2);
+                break;
+            case ShapeType.Disk:
+                inertia = DISK_INERTIA_CONSTANT * Mass * (Mathf.Pow(innerRadius, 2) + Mathf.Pow(outerRadius, 2));
+                break;
+            case ShapeType.ThinRod:
+                inertia = BOX_INERTIA_CONSTANT * Mass * length;
+                break;
         }
+
+        Inertia = inertia;
 
     }
 
@@ -88,6 +105,7 @@ public class Particle2D : MonoBehaviour
         updatePositionEulerExplicit(Time.fixedDeltaTime);
 
         UpdateAcceleration();
+        UpdateAngularAcceleration();
 
         // Change position to the positional variables
         transform.position = position;
@@ -149,7 +167,7 @@ public class Particle2D : MonoBehaviour
 
 
 
-    void AddForce(Vector2 newForce)
+    public void AddForce(Vector2 newForce)
     {
         // D'Almbert
         force += newForce;
@@ -161,47 +179,28 @@ public class Particle2D : MonoBehaviour
     {
         // Convert force to acceleration
         acceleration = force * invMass;
-
         force.Set(0.0f,0.0f);
     }
 
+    void UpdateAngularAcceleration()
+    {
+        angularAcceleration = torque * inverseInertia;
+        torque = 0;
+    }
+
+
+    public void ApplyTorque(Vector2 force, Vector2 location)
+    {
+        Vector3 cross = Vector3.Cross(force, location);
+        torque += cross.z;
+    }
 
 
     private void Update()
     {
-        // The following code goes through all forces that are supposed to be added
-        // and determines their force type and acts appropriately
-        for (int i = 0; i < forcesEnactedOnParticle.Length; i++)
+        for (int i = 0; i < torqueForces.Length; i++)
         {
-            switch (forcesEnactedOnParticle[i])
-            {
-                case ForceType.Gravity:
-                    AddForce(ForceGenerator.GenerateForce_Gravtity(mass,gravitationalConstant,WORLD_UP));
-                    break;
-                case ForceType.Normal:
-                    AddForce(ForceGenerator.GenerateForce_normal(new Vector2(0, gravitationalConstant), surfaceNormalUnit));
-                    break;
-                case ForceType.Sliding:
-                    AddForce(ForceGenerator.GenerateForce_sliding(new Vector2(0, gravitationalConstant), normal));
-                    break;
-                case ForceType.Static_Friction:
-                    AddForce(ForceGenerator.GenerateForce_friction_static(normal, opposingForce, frictionCoefficient_static));
-                    break;
-                case ForceType.Kinetic_Friction:
-                    AddForce(ForceGenerator.GenerateForce_friction_kinetic(normal, velocity, frictionCoefficient_kinetic));
-                    break;
-                case ForceType.Drag:
-                    AddForce(ForceGenerator.GenerateForce_drag(velocity, fluidVelocity, fluidDensity, objectCrossection, dragCoefficient));
-                    break;
-                case ForceType.Spring:
-                    AddForce(ForceGenerator.GenerateForce_spring(position, anchorPosition, springRestingLength, springStiffness));
-                    break;
-                case ForceType.Buoyency:
-                    AddForce(ForceGenerator.GenerateForce_buoyancy(position, waterHeight, maxDepth, volume, liquidDensity));
-                    break;
-                default:
-                    break;
-            }
+            ApplyTorque(torqueForces[i].force, torqueForces[i].position);
         }
     }
 }

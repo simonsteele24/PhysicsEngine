@@ -10,5 +10,6 @@ public enum ShapeType
 {
     Square,
     Circle,
-    Box
+    Disk,
+    ThinRod
 }
