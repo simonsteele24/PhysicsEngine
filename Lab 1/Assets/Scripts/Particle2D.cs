@@ -49,8 +49,8 @@ public class Particle2D : MonoBehaviour
     {
         set
         {
-            mass = mass > 0.0f ? mass: 0.0f;
-            invMass = mass > 0.0f ? 1.0f / mass : 0.0f;
+            mass = mass > 0.0f ? mass: mass = 0.0f;
+            invMass = mass > 0.0f ? invMass = 1.0f / mass : invMass = 0.0f;
         }
 
         get { return mass; }
@@ -60,8 +60,8 @@ public class Particle2D : MonoBehaviour
     {
         set
         {
-            inertia = inertia > 0.0f ? inertia : 0.0f;
-            inverseInertia = inertia > 0.0f ? 1.0f / inertia : 0.0f;
+            inertia = inertia > 0.0f ? inertia : inertia = 0.0f;
+            inverseInertia = inertia > 0.0f ? inverseInertia = 1.0f / inertia : inverseInertia = 0.0f;
         }
 
         get { return inertia; }
