@@ -42,6 +42,18 @@ public class CollisionManager : MonoBehaviour
                     {
                         Debug.Log(particles[x].name + " and " + particles[y].name + " are colliding: " + OBBToOBBCollision(particles[x], particles[y]));
                     }
+                    if (particles[x].collisionType == CollisionHullType.AABB && particles[y].collisionType == CollisionHullType.OBBB)
+                    {
+                        Debug.Log(particles[x].name + " and " + particles[y].name + " are colliding: " + AABBToOBBCollision(particles[x], particles[y]));
+                    }
+                    if (particles[x].collisionType == CollisionHullType.AABB && particles[y].collisionType == CollisionHullType.Circle)
+                    {
+                        Debug.Log(particles[x].name + " and " + particles[y].name + " are colliding: " + CircleToOBBCollision(particles[x], particles[y]));
+                    }
+                    if (particles[x].collisionType == CollisionHullType.OBBB && particles[y].collisionType == CollisionHullType.Circle)
+                    {
+                        Debug.Log(particles[x].name + " and " + particles[y].name + " are colliding: " + CircleToOBBCollision(particles[x], particles[y]));
+                    }
                 }
             }
         }
@@ -67,12 +79,104 @@ public class CollisionManager : MonoBehaviour
         return xAxisCheck && yAxisCheck;
     }
 
+    public static bool AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    {
+        Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
+        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
+
+
+        Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
+        Vector2 newAMax = Vector2.Dot(a.maxCorner, ARHat) * ARHat;
+        Vector2 newBMin = Vector2.Dot(b.minCorner, ARHat) * ARHat;
+        Vector2 newBMax = Vector2.Dot(b.maxCorner, ARHat) * ARHat;
+
+        bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
+        bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
+
+        if (!(xAxisCheck && yAxisCheck))
+        {
+            return false;
+        }
+
+
+
+
+        newAMin = Vector2.Dot(a.minCorner, AUHat) * AUHat;
+        newAMax = Vector2.Dot(a.maxCorner, AUHat) * AUHat;
+        newBMin = Vector2.Dot(b.minCorner, AUHat) * AUHat;
+        newBMax = Vector2.Dot(b.maxCorner, AUHat) * AUHat;
+
+        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
+        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
+
+        if (!(xAxisCheck && yAxisCheck))
+        {
+            return false;
+        }
+
+        return true;
+
+    }
+
+
+    public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    {
+        Vector2 circleMax = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
+        Vector2 circleMin = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
+
+        bool xAxisCheck = a.minCorner.x <= circleMax.x && circleMin.x <= a.maxCorner.x;
+        bool yAxisCheck = a.minCorner.y <= circleMax.y && circleMin.y <= a.maxCorner.y;
+
+        return xAxisCheck && yAxisCheck;
+    }
+
+
+    public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
+    {
+        Vector2 circleMax = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
+        Vector2 circleMin = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
+        Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
+        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
+
+        Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
+        Vector2 newAMax = Vector2.Dot(a.maxCorner, ARHat) * ARHat;
+        Vector2 newBMin = Vector2.Dot(b.minCorner, ARHat) * ARHat;
+        Vector2 newBMax = Vector2.Dot(b.maxCorner, ARHat) * ARHat;
+
+        bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
+        bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
+
+        if (!(xAxisCheck && yAxisCheck))
+        {
+            return false;
+        }
+
+
+
+
+        newAMin = Vector2.Dot(a.minCorner, AUHat) * AUHat;
+        newAMax = Vector2.Dot(a.maxCorner, AUHat) * AUHat;
+        newBMin = Vector2.Dot(b.minCorner, AUHat) * AUHat;
+        newBMax = Vector2.Dot(b.maxCorner, AUHat) * AUHat;
+
+        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
+        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
+
+        if (!(xAxisCheck && yAxisCheck))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
     public static bool OBBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
         Vector2 BRHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
-        Vector2 AUHat = new Vector2(-Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
-        Vector2 BUHat = new Vector2(-Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
+        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
+        Vector2 BUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
 
 
         Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
@@ -103,7 +207,6 @@ public class CollisionManager : MonoBehaviour
         {
             return false;
         }
-
 
 
 
