@@ -3,7 +3,7 @@
 public class CollisionHull2D : MonoBehaviour
 {
     // Collision hull types
-    public CollisionManager.CollisionHullType collisionType;
+    public CollisionHullType2D collisionType;
     
     // Floats
     public float radius;

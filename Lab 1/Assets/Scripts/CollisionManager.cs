@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+// Collision Hull type enum
+public enum CollisionHullType2D
+{
+    Circle,
+    AABB,
+    OBBB
+}
+
 public class CollisionManager : MonoBehaviour
 {
     public static CollisionManager manager;
-
-    // Collision Hull type enum
-    public enum CollisionHullType
-    {
-        Circle,
-        AABB,
-        OBBB
-    }
 
     // Lists
     public List<CollisionHull2D> particles;
@@ -44,7 +44,7 @@ public class CollisionManager : MonoBehaviour
                 {
                     // If no, then check for collisions
                     // Are the colliders both circles?
-                    if (particles[x].collisionType == CollisionHullType.Circle && particles[y].collisionType == CollisionHullType.Circle)
+                    if (particles[x].collisionType == CollisionHullType2D.Circle && particles[y].collisionType == CollisionHullType2D.Circle)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (CircleToCircleCollision(particles[x], particles[y]))
@@ -61,7 +61,7 @@ public class CollisionManager : MonoBehaviour
                     }
 
                     // Are the colliders both AABB?
-                    if (particles[x].collisionType == CollisionHullType.AABB && particles[y].collisionType == CollisionHullType.AABB)
+                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.AABB)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (AABBToAABBCollision(particles[x], particles[y]))
@@ -77,7 +77,7 @@ public class CollisionManager : MonoBehaviour
                     }
 
                     // Are the colliders both OBBBs?
-                    if (particles[x].collisionType == CollisionHullType.OBBB && particles[y].collisionType == CollisionHullType.OBBB)
+                    if (particles[x].collisionType == CollisionHullType2D.OBBB && particles[y].collisionType == CollisionHullType2D.OBBB)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (OBBToOBBCollision(particles[x], particles[y]))
@@ -93,7 +93,7 @@ public class CollisionManager : MonoBehaviour
                     }
 
                     // Are the colliders AABB and OBBB?
-                    if (particles[x].collisionType == CollisionHullType.AABB && particles[y].collisionType == CollisionHullType.OBBB)
+                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.OBBB)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (AABBToOBBCollision(particles[x], particles[y]))
@@ -109,7 +109,7 @@ public class CollisionManager : MonoBehaviour
                     }
 
                     // Are the colliders AABB and Circle?
-                    if (particles[x].collisionType == CollisionHullType.AABB && particles[y].collisionType == CollisionHullType.Circle)
+                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.Circle)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (CircleToABBCollision(particles[x], particles[y]))
@@ -125,7 +125,7 @@ public class CollisionManager : MonoBehaviour
                     }
 
                     // Are the colliders OBBB and Circle?
-                    if (particles[x].collisionType == CollisionHullType.OBBB && particles[y].collisionType == CollisionHullType.Circle)
+                    if (particles[x].collisionType == CollisionHullType2D.OBBB && particles[y].collisionType == CollisionHullType2D.Circle)
                     {
                         // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
                         if (CircleToOBBCollision(particles[x], particles[y]))
@@ -222,62 +222,31 @@ public class CollisionManager : MonoBehaviour
         Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
         Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
 
+        bool axisCheck = CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, ARHat);
 
-        // Project onto A's x axis
-        Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
-        Vector2 newAMax = Vector2.Dot(a.maxCorner, ARHat) * ARHat;
-        Vector2 newBMin = Vector2.Dot(b.minCorner, ARHat) * ARHat;
-        Vector2 newBMax = Vector2.Dot(b.maxCorner, ARHat) * ARHat;
-
-        // Do axis checks
-        bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Do the checks fail?
-        if (!(xAxisCheck && yAxisCheck))
+        // Do all checks pass?
+        if (axisCheck)
         {
-            // If yes, then they are not colliding
-            return false;
-        }
-
-
-
-        // Project onto A's y axis
-        newAMin = Vector2.Dot(a.minCorner, AUHat) * AUHat;
-        newAMax = Vector2.Dot(a.maxCorner, AUHat) * AUHat;
-        newBMin = Vector2.Dot(b.minCorner, AUHat) * AUHat;
-        newBMax = Vector2.Dot(b.maxCorner, AUHat) * AUHat;
-
-        // Do axis checks
-        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Do the checks fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they are not colliding
-            return false;
-        }
-
-        // If yes, then inform the parents of the complex shape object (if applicable)
-        if (a.transform.parent != null)
-        {
-            a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-        }
-        if (b.transform.parent != null)
-        {
-            b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            // If yes, then inform the parents of the complex shape object (if applicable)
+            if (a.transform.parent != null)
+            {
+                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            }
+            if (b.transform.parent != null)
+            {
+                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            }
         }
 
         // Return result
-        return true;
+        return axisCheck;
     }
 
 
 
 
     // This function calculates Circle to OBB collisions
-    public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate circle min and max corners
         Vector2 circleMax = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
@@ -309,64 +278,34 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function calculate Circle to ABB collisions
-    public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Find the circle max and min corners
-        Vector2 circleMax = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
-        Vector2 circleMin = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
+        b.minCorner = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
+        b.maxCorner = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
 
         // Compute the R hat and U hat for A
         Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
         Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
 
-        // Project onto x axis of A
-        Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
-        Vector2 newAMax = Vector2.Dot(a.maxCorner, ARHat) * ARHat;
-        Vector2 newBMin = Vector2.Dot(b.minCorner, ARHat) * ARHat;
-        Vector2 newBMax = Vector2.Dot(b.maxCorner, ARHat) * ARHat;
+        bool axisCheck = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat);
 
-        // Do axis checks
-        bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
+        // Do all checks pass?
+        if (axisCheck)
         {
-            // If yes, then they are not colliding
-            return false;
-        }
-
-
-
-        // Project onto y axis of A
-        newAMin = Vector2.Dot(a.minCorner, AUHat) * AUHat;
-        newAMax = Vector2.Dot(a.maxCorner, AUHat) * AUHat;
-        newBMin = Vector2.Dot(b.minCorner, AUHat) * AUHat;
-        newBMax = Vector2.Dot(b.maxCorner, AUHat) * AUHat;
-
-        // Do axis checks
-        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they are not colliding
-            return false;
-        }
-
-        // If yes, then inform the parents of the complex shape object (if applicable)
-        if (a.transform.parent != null)
-        {
-            a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-        }
-        if (b.transform.parent != null)
-        {
-            b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            // If yes, then inform the parents of the complex shape object (if applicable)
+            if (a.transform.parent != null)
+            {
+                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            }
+            if (b.transform.parent != null)
+            {
+                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            }
         }
 
         // return result
-        return true;
+        return axisCheck;
     }
 
 
@@ -381,91 +320,45 @@ public class CollisionManager : MonoBehaviour
         Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
         Vector2 BUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
 
+        bool axisChecks = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, BRHat) && CheckOBBAxis(a, b, BUHat);
 
-        // Project onto the x axis of A
-        Vector2 newAMin = Vector2.Dot(a.minCorner, ARHat) * ARHat;
-        Vector2 newAMax = Vector2.Dot(a.maxCorner, ARHat) * ARHat;
-        Vector2 newBMin = Vector2.Dot(b.minCorner, ARHat) * ARHat;
-        Vector2 newBMax = Vector2.Dot(b.maxCorner, ARHat) * ARHat;
+
+        // Do the axis checks pass?
+        if (axisChecks)
+        {
+            // If yes, then inform the parents of the complex shape object (if applicable)
+            if (a.transform.parent != null)
+            {
+                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            }
+            if (b.transform.parent != null)
+            {
+                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+
+            }
+        }
+        
+        // return result
+        return true;
+    }
+
+
+
+
+    // This function checks for a collision between two objects by projecting onto a specific axis
+    public static bool CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
+    {
+        // Project axis
+        Vector2 newAMin = Vector2.Dot(shapeA.minCorner, rotationAxis) * rotationAxis;
+        Vector2 newAMax = Vector2.Dot(shapeA.maxCorner, rotationAxis) * rotationAxis;
+        Vector2 newBMin = Vector2.Dot(shapeA.minCorner, rotationAxis) * rotationAxis;
+        Vector2 newBMax = Vector2.Dot(shapeB.maxCorner, rotationAxis) * rotationAxis;
 
         // Do axis checks
         bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
         bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
 
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they aren't colliding
-            return false;
-        }
-
-
-
-        // Project onto the x axis of B
-        newAMin = Vector2.Dot(a.minCorner, BRHat) * BRHat;
-        newAMax = Vector2.Dot(a.maxCorner, BRHat) * BRHat;
-        newBMin = Vector2.Dot(b.minCorner, BRHat) * BRHat;
-        newBMax = Vector2.Dot(b.maxCorner, BRHat) * BRHat;
-
-        // Do axis checks
-        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they aren't colliding
-            return false;
-        }
-
-
-        // Project onto the y axis of A
-        newAMin = Vector2.Dot(a.minCorner, AUHat) * AUHat;
-        newAMax = Vector2.Dot(a.maxCorner, AUHat) * AUHat;
-        newBMin = Vector2.Dot(b.minCorner, AUHat) * AUHat;
-        newBMax = Vector2.Dot(b.maxCorner, AUHat) * AUHat;
-
-        // Do axis checks
-        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they aren't colliding
-            return false;
-        }
-
-
-        // Project onto the y axis of B
-        newAMin = Vector2.Dot(a.minCorner, BUHat) * BUHat;
-        newAMax = Vector2.Dot(a.maxCorner, BUHat) * BUHat;
-        newBMin = Vector2.Dot(b.minCorner, BUHat) * BUHat;
-        newBMax = Vector2.Dot(b.maxCorner, BUHat) * BUHat;
-
-        // Do axis checks
-        xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
-
-        // Does the check fail?
-        if (!(xAxisCheck && yAxisCheck))
-        {
-            // If yes, then they aren't colliding
-            return false;
-        }
-
-        // If yes, then inform the parents of the complex shape object (if applicable)
-        if (a.transform.parent != null)
-        {
-            a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-        }
-        if (b.transform.parent != null)
-        {
-            b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-
-        }
-
-        // return result
-        return true;
+        // Return result
+        return xAxisCheck && yAxisCheck;
     }
 }
