@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 // Collision Hull type enum
@@ -11,6 +12,7 @@ public enum CollisionHullType2D
 
 public class CollisionManager : MonoBehaviour
 {
+    private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>>();
     public static CollisionManager manager;
 
     // Lists
@@ -25,6 +27,13 @@ public class CollisionManager : MonoBehaviour
     {
         particles = new List<CollisionHull2D>();
         manager = this;
+
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.Circle), CircleToCircleCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
     }
 
 
@@ -42,12 +51,11 @@ public class CollisionManager : MonoBehaviour
                 // If the one being checked equal to itself?
                 if (x != y)
                 {
-                    // If no, then check for collisions
-                    // Are the colliders both circles?
-                    if (particles[x].collisionType == CollisionHullType2D.Circle && particles[y].collisionType == CollisionHullType2D.Circle)
+                    /*CollisionPairKey key = new CollisionPairKey(particles[x].collisionType, particles[y].collisionType);
+
+                    if (_collisionTypeCollisionTestFunctions.ContainsKey(key))
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (CircleToCircleCollision(particles[x], particles[y]))
+                        if (_collisionTypeCollisionTestFunctions[key](particles[x], particles[y]))
                         {
                             particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
                             particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
@@ -57,89 +65,56 @@ public class CollisionManager : MonoBehaviour
                             particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
                             particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
                         }
-                        
+                    }*/
+
+                    // If no, then check for collisions
+                    // Are the colliders both circles?
+                    if (particles[x].collisionType == CollisionHullType2D.Circle && particles[y].collisionType == CollisionHullType2D.Circle)
+                    {
+                        bool collisionCheck = CircleToCircleCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
 
                     // Are the colliders both AABB?
                     if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.AABB)
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (AABBToAABBCollision(particles[x], particles[y]))
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                        }
-                        else
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                        }
+                        bool collisionCheck = AABBToAABBCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
 
                     // Are the colliders both OBBBs?
                     if (particles[x].collisionType == CollisionHullType2D.OBBB && particles[y].collisionType == CollisionHullType2D.OBBB)
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (OBBToOBBCollision(particles[x], particles[y]))
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                        }
-                        else
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                        }
+                        bool collisionCheck = OBBToOBBCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
 
                     // Are the colliders AABB and OBBB?
                     if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.OBBB)
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (AABBToOBBCollision(particles[x], particles[y]))
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                        }
-                        else
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                        }
+                        bool collisionCheck = AABBToOBBCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
 
                     // Are the colliders AABB and Circle?
-                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.Circle)
+                    if (particles[y].collisionType == CollisionHullType2D.AABB && particles[x].collisionType == CollisionHullType2D.Circle)
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (CircleToABBCollision(particles[x], particles[y]))
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                        }
-                        else
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                        }
+                        bool collisionCheck = CircleToABBCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
 
                     // Are the colliders OBBB and Circle?
-                    if (particles[x].collisionType == CollisionHullType2D.OBBB && particles[y].collisionType == CollisionHullType2D.Circle)
+                    if (particles[y].collisionType == CollisionHullType2D.OBBB && particles[x].collisionType == CollisionHullType2D.Circle)
                     {
-                        // If yes then check if the two are colliding and appropriately highlight them (red = not colliding, green = colliding)
-                        if (CircleToOBBCollision(particles[x], particles[y]))
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-                        }
-                        else
-                        {
-                            particles[x].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                            particles[y].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-                        }
+                        bool collisionCheck = CircleToOBBCollision(particles[x], particles[y]);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
                     }
-
                 }
             }
         }
@@ -219,8 +194,8 @@ public class CollisionManager : MonoBehaviour
     public static bool AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
-        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
+        Vector2 ARHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
+        Vector2 AUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
 
         bool axisCheck = CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, ARHat);
 
@@ -249,12 +224,12 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate circle min and max corners
-        Vector2 circleMax = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
-        Vector2 circleMin = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
+        Vector2 circleMax = new Vector2(a.position.x + a.radius, b.position.y + a.radius);
+        Vector2 circleMin = new Vector2(a.position.x - a.radius, b.position.y - a.radius);
 
         // Do axis check
-        bool xAxisCheck = a.minCorner.x <= circleMax.x && circleMin.x <= a.maxCorner.x;
-        bool yAxisCheck = a.minCorner.y <= circleMax.y && circleMin.y <= a.maxCorner.y;
+        bool xAxisCheck = b.minCorner.x <= circleMax.x && circleMin.x <= b.maxCorner.x;
+        bool yAxisCheck = b.minCorner.y <= circleMax.y && circleMin.y <= b.maxCorner.y;
 
         // Does the check pass?
         if (xAxisCheck && yAxisCheck)
@@ -281,12 +256,12 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Find the circle max and min corners
-        b.minCorner = new Vector2(b.position.x - b.radius, b.position.y - b.radius);
-        b.maxCorner = new Vector2(b.position.x + b.radius, b.position.y + b.radius);
+        a.minCorner = new Vector2(a.position.x - a.radius, a.position.y - a.radius);
+        a.maxCorner = new Vector2(a.position.x + a.radius, a.position.y + a.radius);
 
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
-        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
+        Vector2 ARHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
+        Vector2 AUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
 
         bool axisCheck = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat);
 

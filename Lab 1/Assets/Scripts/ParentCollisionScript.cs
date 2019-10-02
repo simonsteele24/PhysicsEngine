@@ -4,6 +4,8 @@ public class ParentCollisionScript : MonoBehaviour
 {
     public void ReportCollisionToParent()
     {
+        Debug.Log("Here");
+
         // Iterate through all children
         for (int i = 0; i < transform.childCount; i++)
         {
