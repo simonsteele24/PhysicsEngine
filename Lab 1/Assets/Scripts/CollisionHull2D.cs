@@ -1,29 +1,23 @@
 ﻿using UnityEngine;
 
-public class CollisionHull2D : MonoBehaviour
+public abstract class CollisionHull2D : MonoBehaviour
 {
     // Collision hull types
     public CollisionHullType2D collisionType;
-    
-    // Floats
-    public float radius;
-    public float rotation;
-    public float halfLength;
-    public float halfWidth;
 
     // Vector 2's
-    public Vector2 minCorner;
-    public Vector2 maxCorner;
-    [HideInInspector] public Vector2 position;
+    protected float rotation;
+    protected Vector2 minCorner;
+    protected Vector2 maxCorner;
+    [HideInInspector] protected Vector2 position;
 
+    public Vector2 GetMinimumCorner() { return minCorner; }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        // Initialize position of Collision hull
-        position = transform.position;
+    public Vector2 GetMaximumCorner() { return maxCorner; }
 
-        // Add hull to hull list
-        CollisionManager.manager.InsertToParticleList(this);
-    }
+    public Vector2 GetPosition() { return position; }
+
+    public float GetRotation() { return rotation; }
+
+    public abstract float GetRadius();
 }

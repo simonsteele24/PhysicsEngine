@@ -136,23 +136,16 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToCircleCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate the distance between both colliders
-        float distance = (a.position - b.position).magnitude;
+        float distance = (a.GetPosition() - b.GetPosition()).magnitude;
 
         // Combine the sums of both radii
-        float radius = a.radius + b.radius;
+        float radius = a.GetRadius() + b.GetRadius();
 
         // Are the Radii less than or equal to the distance between both circles?
         if (distance <= radius)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
+            ReportCollisionToParent(a, b);
         }
 
         // Return result
@@ -166,21 +159,14 @@ public class CollisionManager : MonoBehaviour
     public static bool AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
-        bool xAxisCheck = a.minCorner.x <= b.maxCorner.x && b.minCorner.x <= a.maxCorner.x;
-        bool yAxisCheck = a.minCorner.y <= b.maxCorner.y && b.minCorner.y <= a.maxCorner.y;
+        bool xAxisCheck = a.GetMaximumCorner().x <= b.GetMinimumCorner().x && b.GetMinimumCorner().x <= a.GetMaximumCorner().x;
+        bool yAxisCheck = a.GetMinimumCorner().y <= b.GetMaximumCorner().y && b.GetMinimumCorner().y <= a.GetMaximumCorner().y;
 
         // Do the two checks pass?
         if (xAxisCheck && yAxisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
+            ReportCollisionToParent(a, b);
         }
 
         // Return the result
@@ -194,8 +180,8 @@ public class CollisionManager : MonoBehaviour
     public static bool AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
-        Vector2 AUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
+        Vector2 ARHat = new Vector2(Mathf.Cos(b.GetRotation()), Mathf.Sin(b.GetRotation()));
+        Vector2 AUHat = new Vector2(Mathf.Sin(b.GetRotation()), Mathf.Cos(b.GetRotation()));
 
         bool axisCheck = CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, ARHat);
 
@@ -203,14 +189,7 @@ public class CollisionManager : MonoBehaviour
         if (axisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
+            ReportCollisionToParent(a, b);
         }
 
         // Return result
@@ -224,25 +203,18 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate circle min and max corners
-        Vector2 circleMax = new Vector2(a.position.x + a.radius, b.position.y + a.radius);
-        Vector2 circleMin = new Vector2(a.position.x - a.radius, b.position.y - a.radius);
+        Vector2 circleMax = new Vector2(a.GetPosition().x + a.GetRadius(), b.GetPosition().y + a.GetRadius());
+        Vector2 circleMin = new Vector2(a.GetPosition().x - a.GetRadius(), b.GetPosition().y - a.GetRadius());
 
         // Do axis check
-        bool xAxisCheck = b.minCorner.x <= circleMax.x && circleMin.x <= b.maxCorner.x;
-        bool yAxisCheck = b.minCorner.y <= circleMax.y && circleMin.y <= b.maxCorner.y;
+        bool xAxisCheck = b.GetMinimumCorner().x <= circleMax.x && circleMin.x <= b.GetMaximumCorner().x;
+        bool yAxisCheck = b.GetMinimumCorner().y <= circleMax.y && circleMin.y <= b.GetMaximumCorner().y;
 
         // Does the check pass?
         if (xAxisCheck && yAxisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
+            ReportCollisionToParent(a, b);
         }
 
         // Return result
@@ -256,12 +228,12 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Find the circle max and min corners
-        a.minCorner = new Vector2(a.position.x - a.radius, a.position.y - a.radius);
-        a.maxCorner = new Vector2(a.position.x + a.radius, a.position.y + a.radius);
+        Vector2 aMinCorner = new Vector2(a.GetPosition().x - a.GetRadius(), a.GetPosition().y - a.GetRadius());
+        Vector2 aMaxCorner = new Vector2(a.GetPosition().x + a.GetRadius(), a.GetPosition().y + a.GetRadius());
 
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
-        Vector2 AUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
+        Vector2 ARHat = new Vector2(Mathf.Cos(b.GetRotation()), Mathf.Sin(b.GetRotation()));
+        Vector2 AUHat = new Vector2(Mathf.Sin(b.GetRotation()), Mathf.Cos(b.GetRotation()));
 
         bool axisCheck = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat);
 
@@ -269,14 +241,7 @@ public class CollisionManager : MonoBehaviour
         if (axisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
+            ReportCollisionToParent(a, b);
         }
 
         // return result
@@ -290,10 +255,10 @@ public class CollisionManager : MonoBehaviour
     public static bool OBBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for both collision hulls
-        Vector2 ARHat = new Vector2(Mathf.Cos(a.rotation), Mathf.Sin(a.rotation));
-        Vector2 BRHat = new Vector2(Mathf.Cos(b.rotation), Mathf.Sin(b.rotation));
-        Vector2 AUHat = new Vector2(Mathf.Sin(a.rotation), Mathf.Cos(a.rotation));
-        Vector2 BUHat = new Vector2(Mathf.Sin(b.rotation), Mathf.Cos(b.rotation));
+        Vector2 ARHat = new Vector2(Mathf.Cos(a.GetRotation()), Mathf.Sin(a.GetRotation()));
+        Vector2 BRHat = new Vector2(Mathf.Cos(b.GetRotation()), Mathf.Sin(b.GetRotation()));
+        Vector2 AUHat = new Vector2(Mathf.Sin(a.GetRotation()), Mathf.Cos(a.GetRotation()));
+        Vector2 BUHat = new Vector2(Mathf.Sin(b.GetRotation()), Mathf.Cos(b.GetRotation()));
 
         bool axisChecks = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, BRHat) && CheckOBBAxis(a, b, BUHat);
 
@@ -302,15 +267,7 @@ public class CollisionManager : MonoBehaviour
         if (axisChecks)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
-            if (a.transform.parent != null)
-            {
-                a.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-            }
-            if (b.transform.parent != null)
-            {
-                b.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-
-            }
+            ReportCollisionToParent(a, b);
         }
         
         // return result
@@ -324,10 +281,10 @@ public class CollisionManager : MonoBehaviour
     public static bool CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
     {
         // Project axis
-        Vector2 newAMin = Vector2.Dot(shapeA.minCorner, rotationAxis) * rotationAxis;
-        Vector2 newAMax = Vector2.Dot(shapeA.maxCorner, rotationAxis) * rotationAxis;
-        Vector2 newBMin = Vector2.Dot(shapeA.minCorner, rotationAxis) * rotationAxis;
-        Vector2 newBMax = Vector2.Dot(shapeB.maxCorner, rotationAxis) * rotationAxis;
+        Vector2 newAMin = Vector2.Dot(shapeA.GetMinimumCorner(), rotationAxis) * rotationAxis;
+        Vector2 newAMax = Vector2.Dot(shapeA.GetMaximumCorner(), rotationAxis) * rotationAxis;
+        Vector2 newBMin = Vector2.Dot(shapeA.GetMinimumCorner(), rotationAxis) * rotationAxis;
+        Vector2 newBMax = Vector2.Dot(shapeB.GetMaximumCorner(), rotationAxis) * rotationAxis;
 
         // Do axis checks
         bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
@@ -335,5 +292,22 @@ public class CollisionManager : MonoBehaviour
 
         // Return result
         return xAxisCheck && yAxisCheck;
+    }
+
+
+
+    // This function reports two sets of collision hulls to their respective parents (if possible)
+    public static void ReportCollisionToParent(CollisionHull2D shapeA, CollisionHull2D shapeB)
+    {
+        // If yes, then inform the parents of the complex shape object (if applicable)
+        if (shapeA.transform.parent != null)
+        {
+            shapeA.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+        }
+        if (shapeB.transform.parent != null)
+        {
+            shapeB.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+
+        }
     }
 }
