@@ -19,6 +19,7 @@ public class Circle : CollisionHull2D
     }
 
     public override float GetRadius() { return radius; }
+    public override Vector2 GetDimensions() { return new Vector2(radius, 0); }
 
     // Update is called once per frame
     void Update()

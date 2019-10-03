@@ -21,6 +21,7 @@ public class OBB : CollisionHull2D
     }
 
     public override float GetRadius() { return 0; }
+    public override Vector2 GetDimensions() { return new Vector2(halfLength, halfWidth); }
 
     // Update is called once per frame
     void Update()

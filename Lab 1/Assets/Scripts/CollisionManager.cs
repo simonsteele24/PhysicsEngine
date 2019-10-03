@@ -12,7 +12,30 @@ public enum CollisionHullType2D
 
 public class CollisionManager : MonoBehaviour
 {
+    public class CollisionInfo
+    {
+        public struct Contact
+        {
+            Vector2 point;
+            Vector2 normal;
+            float restitution;
+        }
+        public CollisionHull2D a;
+        public CollisionHull2D b;
+        public Contact[] contacts = new Contact[4];
+
+        public Vector2 closingVelocity;
+        public Vector2 penetration;
+
+
+        bool status;
+
+    }
+
+
     public static CollisionManager manager;
+
+    private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>>(new CollisionPairKey.EqualityComparitor());
 
     // Lists
     public List<CollisionHull2D> particles;
@@ -26,6 +49,13 @@ public class CollisionManager : MonoBehaviour
     {
         particles = new List<CollisionHull2D>();
         manager = this;
+
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.Circle), CircleToCircleCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
     }
 
 
@@ -48,107 +78,20 @@ public class CollisionManager : MonoBehaviour
                 // If the one being checked equal to itself?
                 if (x != y && (particles[x].transform.parent != particles[y].transform.parent || particles[x].transform.parent == null))
                 {
-                    // If no, then check for collisions
-                    // Are the colliders both circles?
-                    if (particles[x].collisionType == CollisionHullType2D.Circle && particles[y].collisionType == CollisionHullType2D.Circle)
+
+                    CollisionPairKey key = new CollisionPairKey(particles[x].collisionType, particles[y].collisionType);
+                    
+                    bool collisionCheck = _collisionTypeCollisionTestFunctions[key](particles[x], particles[y]);
+
+                    if (!particles[x].GetCollidingChecker())
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                    if (!particles[y].GetCollidingChecker())
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+
+                    if (collisionCheck)
                     {
-                        bool collisionCheck = CircleToCircleCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
-                    }
-
-                    // Are the colliders both AABB?
-                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.AABB)
-                    {
-                        bool collisionCheck = AABBToAABBCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
-                    }
-
-                    // Are the colliders both OBBBs?
-                    if (particles[x].collisionType == CollisionHullType2D.OBBB && particles[y].collisionType == CollisionHullType2D.OBBB)
-                    {
-                        bool collisionCheck = OBBToOBBCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
-                    }
-
-                    // Are the colliders AABB and OBBB?
-                    if (particles[x].collisionType == CollisionHullType2D.AABB && particles[y].collisionType == CollisionHullType2D.OBBB)
-                    {
-                        bool collisionCheck = AABBToOBBCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
-                    }
-
-                    // Are the colliders AABB and Circle?
-                    if (particles[y].collisionType == CollisionHullType2D.AABB && particles[x].collisionType == CollisionHullType2D.Circle)
-                    {
-                        bool collisionCheck = CircleToABBCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
-                    }
-
-                    // Are the colliders OBBB and Circle?
-                    if (particles[y].collisionType == CollisionHullType2D.OBBB && particles[x].collisionType == CollisionHullType2D.Circle)
-                    {
-                        bool collisionCheck = CircleToOBBCollision(particles[x], particles[y]);
-
-                        if (!particles[x].GetCollidingChecker())
-                            particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-                        if (!particles[y].GetCollidingChecker())
-                            particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
-
-                        if (collisionCheck)
-                        {
-                            particles[x].ToggleCollidingChecker();
-                            particles[y].ToggleCollidingChecker();
-                        }
+                        particles[x].ToggleCollidingChecker();
+                        particles[y].ToggleCollidingChecker();
                     }
                 }
             }
@@ -171,20 +114,19 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToCircleCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate the distance between both colliders
-        float distance = (a.GetPosition() - b.GetPosition()).magnitude;
+        Vector2 distance = a.GetPosition() - b.GetPosition();
 
-        // Combine the sums of both radii
-        float radius = a.GetRadius() + b.GetRadius();
+        bool axisCheck = Vector2.Dot(distance, distance) <= (a.GetRadius() + b.GetRadius()) * (a.GetRadius() + b.GetRadius());
 
         // Are the Radii less than or equal to the distance between both circles?
-        if (distance <= radius)
+        if (axisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
 
         // Return result
-        return distance <= radius;
+        return axisCheck;
     }
 
 
@@ -215,8 +157,8 @@ public class CollisionManager : MonoBehaviour
     public static bool AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(b.GetRotation())), Mathf.Abs(Mathf.Sin(b.GetRotation())));
-        Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
+        Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
+        Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
         bool axisCheck = CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, ARHat);
 
@@ -237,23 +179,22 @@ public class CollisionManager : MonoBehaviour
     // This function calculates Circle to OBB collisions
     public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
-        // Calculate circle min and max corners
-        Vector2 circleMax = new Vector2(a.GetPosition().x + a.GetRadius(), a.GetPosition().y + a.GetRadius());
-        Vector2 circleMin = new Vector2(a.GetPosition().x - a.GetRadius(), a.GetPosition().y - a.GetRadius());
 
-        // Do axis check
-        bool xAxisCheck = b.GetMinimumCorner().x <= circleMax.x && circleMin.x <= b.GetMaximumCorner().x;
-        bool yAxisCheck = b.GetMinimumCorner().y <= circleMax.y && circleMin.y <= b.GetMaximumCorner().y;
+        Vector2 closestPointToCircle = new Vector2(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)));
+
+        Vector2 distance = a.GetPosition() - closestPointToCircle;
+
+        bool axisCheck = Vector2.Dot(distance, distance) <= a.GetRadius() * a.GetRadius();
 
         // Does the check pass?
-        if (xAxisCheck && yAxisCheck)
+        if (axisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
 
         // Return result
-        return xAxisCheck && yAxisCheck;
+        return axisCheck;
     }
 
 
@@ -263,8 +204,8 @@ public class CollisionManager : MonoBehaviour
     public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(b.GetRotation())), Mathf.Abs(Mathf.Sin(b.GetRotation())));
-        Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
+        Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
+        Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
         bool axisCheck = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat);
 
@@ -286,8 +227,8 @@ public class CollisionManager : MonoBehaviour
     public static bool OBBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for both collision hulls
-        Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(a.GetRotation())), Mathf.Abs(Mathf.Sin(a.GetRotation())));
-        Vector2 BRHat = new Vector2(Mathf.Abs(Mathf.Cos(b.GetRotation())), Mathf.Abs(Mathf.Sin(b.GetRotation())));
+        Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(a.GetRotation())), Mathf.Abs(-Mathf.Sin(a.GetRotation())));
+        Vector2 BRHat = new Vector2(Mathf.Abs(Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
         Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(a.GetRotation())), Mathf.Abs(Mathf.Cos(a.GetRotation())));
         Vector2 BUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
@@ -311,15 +252,58 @@ public class CollisionManager : MonoBehaviour
     // This function checks for a collision between two objects by projecting onto a specific axis
     public static bool CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
     {
-        // Project axis
-        Vector2 newAMin = Vector2.Dot(shapeA.GetMinimumCorner(), rotationAxis) * rotationAxis;
-        Vector2 newAMax = Vector2.Dot(shapeA.GetMaximumCorner(), rotationAxis) * rotationAxis;
-        Vector2 newBMin = Vector2.Dot(shapeB.GetMinimumCorner(), rotationAxis) * rotationAxis;
-        Vector2 newBMax = Vector2.Dot(shapeB.GetMaximumCorner(), rotationAxis) * rotationAxis;
+        List<Vector2> shapeAPoints = new List<Vector2>();
+        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x + shapeA.GetPosition().x, shapeA.GetDimensions().y + shapeA.GetPosition().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x - shapeA.GetPosition().x, shapeA.GetDimensions().y - shapeA.GetPosition().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x - shapeA.GetPosition().x, shapeA.GetDimensions().y + shapeA.GetPosition().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x + shapeA.GetPosition().x, shapeA.GetDimensions().y - shapeA.GetPosition().y));
+
+        List<Vector2> shapeBPoints = new List<Vector2>();
+        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x + shapeB.GetPosition().x, shapeB.GetDimensions().y + shapeB.GetPosition().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x - shapeB.GetPosition().x, shapeB.GetDimensions().y - shapeB.GetPosition().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x - shapeB.GetPosition().x, shapeB.GetDimensions().y + shapeB.GetPosition().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x + shapeB.GetPosition().x, shapeB.GetDimensions().y - shapeB.GetPosition().y));
+
+        Vector2 shapeAMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+        Vector2 shapeBMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeBMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            Debug.Log(Quaternion.AngleAxis(shapeA.GetRotation(), Vector3.forward));
+            Debug.Log(Quaternion.AngleAxis(shapeB.GetRotation(), Vector3.forward));
+
+            shapeAPoints[i] = Quaternion.AngleAxis(shapeA.GetRotation(), Vector3.forward) * shapeAPoints[i];
+            shapeAPoints[i] = Vector2.Dot(shapeAPoints[i], rotationAxis) * rotationAxis;
+            shapeBPoints[i] = Quaternion.AngleAxis(shapeB.GetRotation(), Vector3.forward) * shapeBPoints[i];
+            shapeBPoints[i] = Vector2.Dot(shapeBPoints[i], rotationAxis) * rotationAxis;
+
+        }
+
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            if (shapeAPoints[i].x <= shapeAMin.x && shapeAPoints[i].y <= shapeAMin.y)
+            {
+                shapeAMin = shapeAPoints[i];
+            }
+            if (shapeAPoints[i].x >= shapeAMax.x && shapeAPoints[i].y >= shapeAMax.y)
+            {
+                shapeAMax = shapeAPoints[i];
+            }
+            if (shapeBPoints[i].x <= shapeBMin.x && shapeBPoints[i].y <= shapeBMin.y)
+            {
+                shapeBMin = shapeBPoints[i];
+            }
+            if (shapeBPoints[i].x >= shapeBMax.x && shapeBPoints[i].y >= shapeBMax.y)
+            {
+                shapeBMax = shapeBPoints[i];
+            }
+        }
 
         // Do axis checks
-        bool xAxisCheck = newAMin.x <= newBMax.x && newBMin.x <= newAMax.x;
-        bool yAxisCheck = newAMin.y <= newBMax.y && newBMin.y <= newAMax.y;
+        bool xAxisCheck = shapeAMin.x <= shapeBMax.x && shapeBMin.x <= shapeAMax.x;
+        bool yAxisCheck = shapeAMin.y <= shapeBMax.y && shapeBMin.y <= shapeAMax.y;
 
         // Return result
         return xAxisCheck && yAxisCheck;
@@ -338,7 +322,6 @@ public class CollisionManager : MonoBehaviour
         if (shapeB.transform.parent != null)
         {
             shapeB.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
-
         }
     }
 }

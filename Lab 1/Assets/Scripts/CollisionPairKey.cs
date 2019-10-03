@@ -5,7 +5,7 @@ using UnityEngine;
 
 
 
-public class CollisionPairKey : IEqualityComparer<CollisionPairKey>
+public class CollisionPairKey
 {
     private CollisionHullType2D[] _collTypes = new CollisionHullType2D[2];
     public CollisionPairKey(CollisionHullType2D collTypeA, CollisionHullType2D collTypeB)
@@ -22,13 +22,16 @@ public class CollisionPairKey : IEqualityComparer<CollisionPairKey>
         }
     }
 
-    public bool Equals(CollisionPairKey x, CollisionPairKey y)
+    public class EqualityComparitor: IEqualityComparer<CollisionPairKey>
     {
-        return x._collTypes.Equals(y._collTypes);
-    }
+        public bool Equals(CollisionPairKey x, CollisionPairKey y)
+        {
+            return x._collTypes[0] == y._collTypes[0] && x._collTypes[1] == y._collTypes[1];
+        }
 
-    public int GetHashCode(CollisionPairKey obj)
-    {
-        return obj.GetHashCode();
+        public int GetHashCode(CollisionPairKey obj)
+        {
+            return (int)obj._collTypes[0] ^ (int)obj._collTypes[1];
+        }
     }
 }
