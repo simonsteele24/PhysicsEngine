@@ -253,16 +253,16 @@ public class CollisionManager : MonoBehaviour
     public static bool CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
     {
         List<Vector2> shapeAPoints = new List<Vector2>();
-        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x + shapeA.GetPosition().x, shapeA.GetDimensions().y + shapeA.GetPosition().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x - shapeA.GetPosition().x, shapeA.GetDimensions().y - shapeA.GetPosition().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x - shapeA.GetPosition().x, shapeA.GetDimensions().y + shapeA.GetPosition().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetDimensions().x + shapeA.GetPosition().x, shapeA.GetDimensions().y - shapeA.GetPosition().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
 
         List<Vector2> shapeBPoints = new List<Vector2>();
-        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x + shapeB.GetPosition().x, shapeB.GetDimensions().y + shapeB.GetPosition().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x - shapeB.GetPosition().x, shapeB.GetDimensions().y - shapeB.GetPosition().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x - shapeB.GetPosition().x, shapeB.GetDimensions().y + shapeB.GetPosition().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetDimensions().x + shapeB.GetPosition().x, shapeB.GetDimensions().y - shapeB.GetPosition().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
 
         Vector2 shapeAMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
         Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
