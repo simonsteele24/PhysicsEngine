@@ -27,7 +27,11 @@ public class OBB : CollisionHull2D
     {
         position = transform.position;
         rotation = transform.eulerAngles.z;
-        minCorner = new Vector2(transform.localPosition.x - halfLength, transform.localPosition.y - halfWidth);
-        maxCorner = new Vector2(transform.localPosition.x + halfLength, transform.localPosition.y + halfWidth);
+
+        Vector3 originalMin = new Vector3(transform.position.x - halfLength, transform.position.y - halfWidth,0);
+        Vector3 originalMax = new Vector3(transform.position.x + halfLength, transform.position.y + halfWidth,0);
+
+        minCorner = Quaternion.Euler(0,0,rotation) * (originalMin - transform.position) + transform.position;
+        maxCorner = Quaternion.Euler(0,0,rotation) * (originalMax - transform.position) + transform.position;
     }
 }

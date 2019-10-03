@@ -3,9 +3,10 @@
 public abstract class CollisionHull2D : MonoBehaviour
 {
     // Collision hull types
-    public CollisionHullType2D collisionType;
+    [HideInInspector] public CollisionHullType2D collisionType;
 
     // Vector 2's
+    protected bool isAlreadyColliding;
     protected float rotation;
     protected Vector2 minCorner;
     protected Vector2 maxCorner;
@@ -18,6 +19,12 @@ public abstract class CollisionHull2D : MonoBehaviour
     public Vector2 GetPosition() { return position; }
 
     public float GetRotation() { return rotation; }
+
+    public void ToggleCollidingChecker() { isAlreadyColliding = true; }
+
+    public void ResetCollidingChecker() { isAlreadyColliding = false; }
+
+    public bool GetCollidingChecker() { return isAlreadyColliding; }
 
     public abstract float GetRadius();
 }
