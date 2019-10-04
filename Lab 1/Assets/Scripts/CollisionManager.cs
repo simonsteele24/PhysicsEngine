@@ -27,19 +27,26 @@ public class CollisionManager : MonoBehaviour
         public Vector2 closingVelocity;
         public Vector2 penetration;
 
+        public bool status;
 
-        bool status;
+
+        public CollisionInfo(bool _status)
+        {
+            status = _status;
+        }
 
     }
 
 
     public static CollisionManager manager;
 
-    private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, bool>>(new CollisionPairKey.EqualityComparitor());
+    private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>>(new CollisionPairKey.EqualityComparitor());
+
+
 
     // Lists
     public List<CollisionHull2D> particles;
-
+    public List<CollisionInfo> collisions;
 
 
 
@@ -48,6 +55,7 @@ public class CollisionManager : MonoBehaviour
     private void Awake()
     {
         particles = new List<CollisionHull2D>();
+        collisions = new List<CollisionInfo>();
         manager = this;
 
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.Circle), CircleToCircleCollision);
@@ -65,6 +73,7 @@ public class CollisionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        collisions.Clear();
         for (int i = 0; i < particles.Count; i++)
         {
             particles[i].ResetCollidingChecker();
@@ -81,14 +90,14 @@ public class CollisionManager : MonoBehaviour
 
                     CollisionPairKey key = new CollisionPairKey(particles[x].collisionType, particles[y].collisionType);
                     
-                    bool collisionCheck = _collisionTypeCollisionTestFunctions[key](particles[x], particles[y]);
+                    collisions.Add(_collisionTypeCollisionTestFunctions[key](particles[x], particles[y]));
 
                     if (!particles[x].GetCollidingChecker())
-                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
                     if (!particles[y].GetCollidingChecker())
-                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisionCheck), Convert.ToInt32(collisionCheck), 0);
+                        particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
 
-                    if (collisionCheck)
+                    if (collisions[collisions.Count - 1].status)
                     {
                         particles[x].ToggleCollidingChecker();
                         particles[y].ToggleCollidingChecker();
@@ -113,7 +122,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function computes circle to circle collisions
-    public static bool CircleToCircleCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo CircleToCircleCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate the distance between both colliders
         Vector2 distance = a.GetPosition() - b.GetPosition();
@@ -128,7 +137,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return axisCheck;
+        return new CollisionInfo(axisCheck);
     }
 
 
@@ -136,7 +145,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function computes AABB to AABB collisions
-    public static bool AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
         bool xAxisCheck = a.GetMaximumCorner().x <= b.GetMinimumCorner().x && b.GetMinimumCorner().x <= a.GetMaximumCorner().x;
@@ -150,7 +159,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return the result
-        return xAxisCheck && yAxisCheck;
+        return new CollisionInfo(xAxisCheck && yAxisCheck);
     }
 
 
@@ -158,7 +167,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function computes AABB to OBBB collisions
-    public static bool AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo AABBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
@@ -169,7 +178,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         axisCheck = CheckOBBAxis(a, b, ARHat);
@@ -182,11 +191,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         // Return result
-        return true;
+        return new CollisionInfo(true);
     }
 
 
@@ -194,7 +203,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function calculates Circle to OBB collisions
-    public static bool CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
 
         Vector2 closestPointToCircle = new Vector2(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)));
@@ -211,7 +220,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return axisCheck;
+        return new CollisionInfo(axisCheck);
     }
 
 
@@ -219,7 +228,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function calculate Circle to ABB collisions
-    public static bool CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for A
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
@@ -230,7 +239,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
@@ -243,11 +252,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         // return result
-        return true;
+        return new CollisionInfo(true);
     }
 
 
@@ -255,7 +264,7 @@ public class CollisionManager : MonoBehaviour
 
 
     // This function calculates OBB to OBB colisions
-    public static bool OBBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
+    public static CollisionInfo OBBToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Compute the R hat and U hat for both collision hulls
         Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(a.GetRotation())), Mathf.Abs(-Mathf.Sin(a.GetRotation())));
@@ -268,21 +277,21 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisChecks)
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         axisChecks = CheckOBBAxis(a, b, AUHat);
 
         if (!axisChecks)
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         axisChecks = CheckOBBAxis(a, b, BRHat);
 
         if (!axisChecks)
         {
-            return false;
+            return new CollisionInfo(false);
         }
 
         axisChecks = CheckOBBAxis(a, b, BUHat);
@@ -295,11 +304,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return false;
+            return new CollisionInfo(false);
         }
         
         // return result
-        return true;
+        return new CollisionInfo(true);
     }
 
 
