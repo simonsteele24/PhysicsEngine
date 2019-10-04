@@ -27,6 +27,4 @@ public abstract class CollisionHull2D : MonoBehaviour
     public bool GetCollidingChecker() { return isAlreadyColliding; }
 
     public abstract Vector2 GetDimensions();
-
-    public abstract float GetRadius();
 }

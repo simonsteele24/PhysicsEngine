@@ -19,7 +19,6 @@ public class AABB : CollisionHull2D
         CollisionManager.manager.InsertToParticleList(this);
     }
 
-    public override float GetRadius() { return 0; }
     public override Vector2 GetDimensions() { return new Vector2(halfLength, halfWidth); }
 
     // Update is called once per frame
