@@ -164,7 +164,15 @@ public class CollisionManager : MonoBehaviour
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
         Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
-        bool axisCheck = CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, ARHat);
+        // Do axis checks
+        bool axisCheck = CheckOBBAxis(a, b, AUHat);
+
+        if (!axisCheck)
+        {
+            return false;
+        }
+
+        axisCheck = CheckOBBAxis(a, b, ARHat);
 
         // Do all checks pass?
         if (axisCheck)
@@ -172,9 +180,13 @@ public class CollisionManager : MonoBehaviour
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
+        else
+        {
+            return false;
+        }
 
         // Return result
-        return axisCheck;
+        return true;
     }
 
 
@@ -213,7 +225,15 @@ public class CollisionManager : MonoBehaviour
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
         Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
-        bool axisCheck = CheckOBBAxisForCircle(a, b, ARHat) && CheckOBBAxisForCircle(a, b, AUHat);
+        // Do axis checks
+        bool axisCheck = CheckOBBAxisForCircle(a, b, ARHat);
+
+        if (!axisCheck)
+        {
+            return false;
+        }
+
+        axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
 
         // Do all checks pass?
         if (axisCheck)
@@ -221,9 +241,13 @@ public class CollisionManager : MonoBehaviour
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
+        else
+        {
+            return false;
+        }
 
         // return result
-        return axisCheck;
+        return true;
     }
 
 
@@ -239,8 +263,29 @@ public class CollisionManager : MonoBehaviour
         Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(a.GetRotation())), Mathf.Abs(Mathf.Cos(a.GetRotation())));
         Vector2 BUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
-        bool axisChecks = CheckOBBAxis(a, b, ARHat) && CheckOBBAxis(a, b, AUHat) && CheckOBBAxis(a, b, BRHat) && CheckOBBAxis(a, b, BUHat);
+        // Do axis checks
+        bool axisChecks = CheckOBBAxis(a, b, ARHat);
 
+        if (!axisChecks)
+        {
+            return false;
+        }
+
+        axisChecks = CheckOBBAxis(a, b, AUHat);
+
+        if (!axisChecks)
+        {
+            return false;
+        }
+
+        axisChecks = CheckOBBAxis(a, b, BRHat);
+
+        if (!axisChecks)
+        {
+            return false;
+        }
+
+        axisChecks = CheckOBBAxis(a, b, BUHat);
 
         // Do the axis checks pass?
         if (axisChecks)
@@ -248,9 +293,13 @@ public class CollisionManager : MonoBehaviour
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
+        else
+        {
+            return false;
+        }
         
         // return result
-        return axisChecks;
+        return true;
     }
 
 
