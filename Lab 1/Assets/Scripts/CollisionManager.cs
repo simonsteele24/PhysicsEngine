@@ -16,23 +16,29 @@ public class CollisionManager : MonoBehaviour
     {
         public struct Contact
         {
-            Vector2 point;
-            Vector2 normal;
-            float restitution;
+            public Vector2 point;
+            public Vector2 normal;
+            public float restitution;
         }
         public CollisionHull2D a;
         public CollisionHull2D b;
         public Contact[] contacts = new Contact[4];
 
-        public Vector2 closingVelocity;
+        public float closingVelocity;
         public Vector2 penetration;
 
         public bool status;
 
 
-        public CollisionInfo(bool _status)
+        public CollisionInfo(bool _status, CollisionHull2D _a, CollisionHull2D _b, float _closingVelocity)
         {
             status = _status;
+            a = _a;
+            b = _b;
+            closingVelocity = _closingVelocity;
+            Vector2 contactNormal = (_a.GetPosition() - _b.GetPosition()).normalized;
+            contacts[0].point = FindPointOfContactWithCircle(_a, _b);
+
         }
 
     }
@@ -137,7 +143,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(axisCheck);
+        return new CollisionInfo(axisCheck, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -159,7 +165,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return the result
-        return new CollisionInfo(xAxisCheck && yAxisCheck);
+        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -178,7 +184,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         axisCheck = CheckOBBAxis(a, b, ARHat);
@@ -191,11 +197,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         // Return result
-        return new CollisionInfo(true);
+        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -220,7 +226,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(axisCheck);
+        return new CollisionInfo(axisCheck, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -239,7 +245,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
@@ -252,11 +258,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         // return result
-        return new CollisionInfo(true);
+        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -277,21 +283,21 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, AUHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, BRHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, BUHat);
@@ -304,11 +310,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false);
+            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
         }
-        
+
         // return result
-        return new CollisionInfo(true);
+        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
     }
 
 
@@ -477,5 +483,24 @@ public class CollisionManager : MonoBehaviour
         {
             shapeB.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
         }
+    }
+
+
+
+    public static float CalculateClosingVelocity(CollisionHull2D shapeA, CollisionHull2D shapeB)
+    {
+        //(velocity of a - velocity of b) * normalized(position of a - position of b)
+        Vector2 differenceOfVelocity = shapeA.gameObject.GetComponent<Particle2D>().velocity - shapeB.gameObject.GetComponent<Particle2D>().velocity;
+        Vector2 differenceOfPosition = (shapeA.GetPosition() - shapeB.GetPosition()).normalized;
+
+        return Vector2.Dot(differenceOfVelocity, differenceOfPosition);
+    }
+
+
+    public static Vector2 FindPointOfContactWithCircle(CollisionHull2D circleA, CollisionHull2D circleB)
+    {
+        Vector2 ratioA = (circleA.GetDimensions().x / (circleA.GetDimensions().x + circleB.GetDimensions().x)) * circleA.GetPosition();
+        Vector2 ratioB = (circleB.GetDimensions().x / (circleA.GetDimensions().x + circleB.GetDimensions().x)) * circleB.GetPosition();
+        return ratioA + ratioB;
     }
 }
