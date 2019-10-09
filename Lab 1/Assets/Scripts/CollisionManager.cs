@@ -67,11 +67,11 @@ public class CollisionManager : MonoBehaviour
         manager = this;
 
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.Circle), CircleToCircleCollision);
-        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
-        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
-        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
-        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
-        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
     }
 
 
@@ -95,7 +95,6 @@ public class CollisionManager : MonoBehaviour
                 // If the one being checked equal to itself?
                 if (x != y && (particles[x].transform.parent != particles[y].transform.parent || particles[x].transform.parent == null))
                 {
-
                     CollisionPairKey key = new CollisionPairKey(particles[x].collisionType, particles[y].collisionType);
 
 
@@ -112,7 +111,7 @@ public class CollisionManager : MonoBehaviour
                     {
                         collisions.Add(_collisionTypeCollisionTestFunctions[key](particles[x], particles[y]));
                     }
-                    
+
 
                     if (!particles[x].GetCollidingChecker())
                         particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
@@ -124,6 +123,7 @@ public class CollisionManager : MonoBehaviour
                         particles[x].ToggleCollidingChecker();
                         particles[y].ToggleCollidingChecker();
                     }
+
                 }
             }
         }
@@ -150,8 +150,6 @@ public class CollisionManager : MonoBehaviour
         // Calculate the distance between both colliders
         Vector2 distance = a.GetPosition() - b.GetPosition();
 
-        Debug.Log(Vector2.Dot(distance, distance));
-        Debug.Log((a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x));
         bool axisCheck = Vector2.Dot(distance, distance) <= (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x);
 
         // Are the Radii less than or equal to the distance between both circles?
@@ -169,7 +167,7 @@ public class CollisionManager : MonoBehaviour
 
 
 
-    /*// This function computes AABB to AABB collisions
+    // This function computes AABB to AABB collisions
     public static CollisionInfo AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
@@ -184,10 +182,8 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return the result
-        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateSeparatingVelocity(a, b));
+        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
     }
-
-
 
 
 
@@ -203,7 +199,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         axisCheck = CheckOBBAxis(a, b, ARHat);
@@ -216,11 +212,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         // Return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
     }
 
 
@@ -245,7 +241,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(axisCheck, a, b, CalculateSeparatingVelocity(a, b));
+        return new CollisionInfo(axisCheck, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
     }
 
 
@@ -264,7 +260,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
@@ -277,13 +273,12 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
     }
-
 
 
 
@@ -302,21 +297,21 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         axisChecks = CheckOBBAxis(a, b, AUHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         axisChecks = CheckOBBAxis(a, b, BRHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         axisChecks = CheckOBBAxis(a, b, BUHat);
@@ -329,13 +324,12 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()));
     }
-
 
 
 
@@ -400,7 +394,6 @@ public class CollisionManager : MonoBehaviour
         // Return result
         return xAxisCheck && yAxisCheck;
     }
-
 
 
 
@@ -484,7 +477,7 @@ public class CollisionManager : MonoBehaviour
 
         // Return result
         return xAxisCheck && yAxisCheck;
-    }*/
+    }
 
 
 
@@ -577,8 +570,19 @@ public class CollisionManager : MonoBehaviour
 
         Vector2 movePerIMass = collision.contacts[0].normal * (collision.penetration / totalInvMass);
 
-        Vector3 particleMovementA = -movePerIMass * collision.a.GetComponent<Particle2D>().invMass;
-        Vector3 particleMovementB = movePerIMass * collision.b.GetComponent<Particle2D>().invMass;
+        Vector3 particleMovementA;
+        Vector3 particleMovementB;
+
+        if (collision.a.GetPosition().x > collision.b.GetPosition().x)
+        {
+            particleMovementA = movePerIMass * collision.a.GetComponent<Particle2D>().invMass;
+            particleMovementB = -movePerIMass * collision.b.GetComponent<Particle2D>().invMass;
+        }
+        else
+        {
+            particleMovementA = -movePerIMass * collision.a.GetComponent<Particle2D>().invMass;
+            particleMovementB = movePerIMass * collision.b.GetComponent<Particle2D>().invMass;
+        }
 
         collision.a.transform.position += particleMovementA;
         collision.a.GetComponent<Particle2D>().position = collision.a.transform.position;
@@ -587,8 +591,5 @@ public class CollisionManager : MonoBehaviour
         collision.b.transform.position += particleMovementB;
         collision.b.GetComponent<Particle2D>().position = collision.b.transform.position;
         collision.b.SetPosition(collision.b.transform.position);
-
-        Debug.Log("Initial penetration: " + collision.penetration);
-        Debug.Log("Resulting Penetration: " + ((collision.a.GetDimensions().x + collision.b.GetDimensions().x) * (collision.a.GetDimensions().x + collision.b.GetDimensions().x) - Vector2.Dot((collision.a.GetPosition() - collision.b.GetPosition()), (collision.a.GetPosition() - collision.b.GetPosition()))));
     }
 }
