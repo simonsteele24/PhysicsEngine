@@ -18,6 +18,8 @@ public abstract class CollisionHull2D : MonoBehaviour
 
     public Vector2 GetPosition() { return position; }
 
+    public void SetPosition(Vector2 newPos) { position = newPos; }
+
     public float GetRotation() { return rotation; }
 
     public void ToggleCollidingChecker() { isAlreadyColliding = true; }

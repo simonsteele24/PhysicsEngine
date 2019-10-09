@@ -42,7 +42,7 @@ public class Particle2D : MonoBehaviour
     private float inverseInertia;
     private float torque = 0;
     [Range(0, Mathf.Infinity)] public float mass;
-    private float invMass;
+    public float invMass;
 
 
     private float Mass
@@ -72,6 +72,8 @@ public class Particle2D : MonoBehaviour
 
     private void Start()
     {
+        position = transform.position;
+
         // Set the mass
         Mass = mass;
 
@@ -84,6 +86,9 @@ public class Particle2D : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Change position to the positional variables
+        transform.position = position;
+
         // Apply all torque forces to particle
         for (int i = 0; i < torqueForces.Length; i++)
         {
@@ -98,8 +103,7 @@ public class Particle2D : MonoBehaviour
         UpdateAcceleration();
         UpdateAngularAcceleration();
 
-        // Change position to the positional variables
-        transform.position = position;
+        
 
         // Change rotation to the rotational variables
         transform.eulerAngles = new Vector3(0, 0, rotation);

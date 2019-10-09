@@ -24,21 +24,23 @@ public class CollisionManager : MonoBehaviour
         public CollisionHull2D b;
         public Contact[] contacts = new Contact[4];
 
-        public float closingVelocity;
-        public Vector2 penetration;
+        public float separatingVelocity;
+        public float penetration;
 
         public bool status;
 
 
-        public CollisionInfo(bool _status, CollisionHull2D _a, CollisionHull2D _b, float _closingVelocity)
+        public CollisionInfo(bool _status, CollisionHull2D _a, CollisionHull2D _b, float _separatingVelocity, float penetrationValue)
         {
             status = _status;
             a = _a;
             b = _b;
-            closingVelocity = _closingVelocity;
-            Vector2 contactNormal = (_a.GetPosition() - _b.GetPosition()).normalized;
+            separatingVelocity = _separatingVelocity;
+            Vector2 contactNormal = (_b.GetPosition() - _a.GetPosition()).normalized;
             contacts[0].point = FindPointOfContactWithCircle(_a, _b);
-
+            contacts[0].normal = contactNormal;
+            contacts[0].restitution = 1;
+            penetration = penetrationValue;
         }
 
     }
@@ -65,11 +67,11 @@ public class CollisionManager : MonoBehaviour
         manager = this;
 
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.Circle), CircleToCircleCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
+        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.AABB), AABBToAABBCollision);
+        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.OBBB, CollisionHullType2D.OBBB), OBBToOBBCollision);
+        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.OBBB), CircleToOBBCollision);
+        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.Circle, CollisionHullType2D.AABB), CircleToABBCollision);
+        //_collisionTypeCollisionTestFunctions.Add(new CollisionPairKey(CollisionHullType2D.AABB, CollisionHullType2D.OBBB), AABBToOBBCollision);
     }
 
 
@@ -95,8 +97,22 @@ public class CollisionManager : MonoBehaviour
                 {
 
                     CollisionPairKey key = new CollisionPairKey(particles[x].collisionType, particles[y].collisionType);
+
+
+                    bool isDuplicate = false;
+                    for (int i = 0; i < collisions.Count; i++)
+                    {
+                        if (collisions[i].a == particles[y] && collisions[i].b == particles[x])
+                        {
+                            isDuplicate = true;
+                        }
+                    }
+
+                    if (!isDuplicate)
+                    {
+                        collisions.Add(_collisionTypeCollisionTestFunctions[key](particles[x], particles[y]));
+                    }
                     
-                    collisions.Add(_collisionTypeCollisionTestFunctions[key](particles[x], particles[y]));
 
                     if (!particles[x].GetCollidingChecker())
                         particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
@@ -111,6 +127,7 @@ public class CollisionManager : MonoBehaviour
                 }
             }
         }
+        ResolveCollisions(collisions);
     }
 
 
@@ -133,6 +150,8 @@ public class CollisionManager : MonoBehaviour
         // Calculate the distance between both colliders
         Vector2 distance = a.GetPosition() - b.GetPosition();
 
+        Debug.Log(Vector2.Dot(distance, distance));
+        Debug.Log((a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x));
         bool axisCheck = Vector2.Dot(distance, distance) <= (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x);
 
         // Are the Radii less than or equal to the distance between both circles?
@@ -143,14 +162,14 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(axisCheck, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(axisCheck, a, b, CalculateSeparatingVelocity(a, b), (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(distance,distance));
     }
 
 
 
 
 
-    // This function computes AABB to AABB collisions
+    /*// This function computes AABB to AABB collisions
     public static CollisionInfo AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
@@ -165,7 +184,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return the result
-        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateSeparatingVelocity(a, b));
     }
 
 
@@ -184,7 +203,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         axisCheck = CheckOBBAxis(a, b, ARHat);
@@ -197,11 +216,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         // Return result
-        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
     }
 
 
@@ -226,7 +245,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(axisCheck, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(axisCheck, a, b, CalculateSeparatingVelocity(a, b));
     }
 
 
@@ -245,7 +264,7 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisCheck)
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
@@ -258,11 +277,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
     }
 
 
@@ -283,21 +302,21 @@ public class CollisionManager : MonoBehaviour
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, AUHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, BRHat);
 
         if (!axisChecks)
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         axisChecks = CheckOBBAxis(a, b, BUHat);
@@ -310,11 +329,11 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
-            return new CollisionInfo(false, a, b, CalculateClosingVelocity(a, b));
+            return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b));
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateClosingVelocity(a, b));
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b));
     }
 
 
@@ -465,7 +484,7 @@ public class CollisionManager : MonoBehaviour
 
         // Return result
         return xAxisCheck && yAxisCheck;
-    }
+    }*/
 
 
 
@@ -487,10 +506,10 @@ public class CollisionManager : MonoBehaviour
 
 
 
-    public static float CalculateClosingVelocity(CollisionHull2D shapeA, CollisionHull2D shapeB)
+    public static float CalculateSeparatingVelocity(CollisionHull2D shapeA, CollisionHull2D shapeB)
     {
         //(velocity of a - velocity of b) * normalized(position of a - position of b)
-        Vector2 differenceOfVelocity = shapeA.gameObject.GetComponent<Particle2D>().velocity - shapeB.gameObject.GetComponent<Particle2D>().velocity;
+        Vector2 differenceOfVelocity = (shapeA.gameObject.GetComponent<Particle2D>().velocity - shapeB.gameObject.GetComponent<Particle2D>().velocity) * -1;
         Vector2 differenceOfPosition = (shapeA.GetPosition() - shapeB.GetPosition()).normalized;
 
         return Vector2.Dot(differenceOfVelocity, differenceOfPosition);
@@ -502,5 +521,74 @@ public class CollisionManager : MonoBehaviour
         Vector2 ratioA = (circleA.GetDimensions().x / (circleA.GetDimensions().x + circleB.GetDimensions().x)) * circleA.GetPosition();
         Vector2 ratioB = (circleB.GetDimensions().x / (circleA.GetDimensions().x + circleB.GetDimensions().x)) * circleB.GetPosition();
         return ratioA + ratioB;
+    }
+
+
+
+    public static void ResolveCollisions(List<CollisionInfo> collisions)
+    {
+        for (int i = 0; i < collisions.Count; i++)
+        {
+            ResolvePenetration(collisions[i]);
+            ResolveVelocities(collisions[i]);
+        }
+    }
+
+
+
+    public static void ResolveVelocities(CollisionInfo collision)
+    {
+        if (!collision.status)
+        {
+            return;
+        }
+
+        float newSeperatingVelocity = -collision.separatingVelocity * collision.contacts[0].restitution;
+        float deltaVelocity = newSeperatingVelocity - collision.separatingVelocity;
+
+        float totalInverseMass = collision.a.GetComponent<Particle2D>().invMass;
+        totalInverseMass += collision.b.GetComponent<Particle2D>().invMass;
+
+        if (totalInverseMass <= 0)
+        {
+            return;
+        }
+
+        float impulse = deltaVelocity / totalInverseMass;
+
+        Vector2 impulsePerIMass = collision.contacts[0].normal * impulse;
+
+        collision.a.GetComponent<Particle2D>().velocity = collision.a.GetComponent<Particle2D>().velocity + impulsePerIMass * collision.a.GetComponent<Particle2D>().invMass;
+        collision.b.GetComponent<Particle2D>().velocity = collision.b.GetComponent<Particle2D>().velocity + impulsePerIMass * -collision.b.GetComponent<Particle2D>().invMass;
+
+    }
+
+    public static void ResolvePenetration(CollisionInfo collision)
+    {
+        if (collision.penetration <= 0) { return; }
+
+        float totalInvMass = collision.a.GetComponent<Particle2D>().invMass;
+        totalInvMass += collision.b.GetComponent<Particle2D>().invMass;
+
+        if (totalInvMass <= 0)
+        {
+            return;
+        }
+
+        Vector2 movePerIMass = collision.contacts[0].normal * (collision.penetration / totalInvMass);
+
+        Vector3 particleMovementA = -movePerIMass * collision.a.GetComponent<Particle2D>().invMass;
+        Vector3 particleMovementB = movePerIMass * collision.b.GetComponent<Particle2D>().invMass;
+
+        collision.a.transform.position += particleMovementA;
+        collision.a.GetComponent<Particle2D>().position = collision.a.transform.position;
+        collision.a.SetPosition(collision.a.transform.position);
+
+        collision.b.transform.position += particleMovementB;
+        collision.b.GetComponent<Particle2D>().position = collision.b.transform.position;
+        collision.b.SetPosition(collision.b.transform.position);
+
+        Debug.Log("Initial penetration: " + collision.penetration);
+        Debug.Log("Resulting Penetration: " + ((collision.a.GetDimensions().x + collision.b.GetDimensions().x) * (collision.a.GetDimensions().x + collision.b.GetDimensions().x) - Vector2.Dot((collision.a.GetPosition() - collision.b.GetPosition()), (collision.a.GetPosition() - collision.b.GetPosition()))));
     }
 }
