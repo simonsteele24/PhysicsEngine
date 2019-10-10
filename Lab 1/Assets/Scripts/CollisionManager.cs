@@ -208,7 +208,10 @@ public class CollisionManager : MonoBehaviour
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
         Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
+        List<float> penetration = new List<float>();
+
         // Do axis checks
+        penetration.Add(GetBounds(a, b, AUHat));
         bool axisCheck = CheckOBBAxis(a, b, AUHat);
 
         if (!axisCheck)
@@ -216,6 +219,7 @@ public class CollisionManager : MonoBehaviour
             return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { (a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition())) });
         }
 
+        penetration.Add(GetBounds(a, b, ARHat));
         axisCheck = CheckOBBAxis(a, b, ARHat);
 
         // Do all checks pass?
@@ -230,7 +234,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // Return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { GetOBBPenetration(penetration) });
     }
 
 
@@ -269,6 +273,10 @@ public class CollisionManager : MonoBehaviour
         Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
         // Do axis checks
+
+        List<float> penetration = new List<float>();
+
+        penetration.Add(GetOBBCircleBounds(a, b, ARHat));
         bool axisCheck = CheckOBBAxisForCircle(a, b, ARHat);
 
         if (!axisCheck)
@@ -276,6 +284,7 @@ public class CollisionManager : MonoBehaviour
             return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
         }
 
+        penetration.Add(GetOBBCircleBounds(a, b, AUHat));
         axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
 
         // Do all checks pass?
@@ -290,7 +299,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { GetOBBPenetration(penetration) });
     }
 
 
@@ -305,14 +314,20 @@ public class CollisionManager : MonoBehaviour
         Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(a.GetRotation())), Mathf.Abs(Mathf.Cos(a.GetRotation())));
         Vector2 BUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
+        List<float> penetration = new List<float>();
+
         // Do axis checks
+        penetration.Add(GetBounds(a, b, ARHat));
         bool axisChecks = CheckOBBAxis(a, b, ARHat);
+
+        
 
         if (!axisChecks)
         {
             return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
         }
 
+        penetration.Add(GetBounds(a, b, AUHat));
         axisChecks = CheckOBBAxis(a, b, AUHat);
 
         if (!axisChecks)
@@ -320,6 +335,7 @@ public class CollisionManager : MonoBehaviour
             return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
         }
 
+        penetration.Add(GetBounds(a, b, BRHat));
         axisChecks = CheckOBBAxis(a, b, BRHat);
 
         if (!axisChecks)
@@ -327,6 +343,7 @@ public class CollisionManager : MonoBehaviour
             return new CollisionInfo(false, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
         }
 
+        penetration.Add(GetBounds(a, b, AUHat));
         axisChecks = CheckOBBAxis(a, b, BUHat);
 
         // Do the axis checks pass?
@@ -341,7 +358,7 @@ public class CollisionManager : MonoBehaviour
         }
 
         // return result
-        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
+        return new CollisionInfo(true, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { GetOBBPenetration(penetration) });
     }
 
 
@@ -408,6 +425,81 @@ public class CollisionManager : MonoBehaviour
         return xAxisCheck && yAxisCheck;
     }
 
+    public static float GetOBBCircleBounds (CollisionHull2D circle, CollisionHull2D OBB, Vector2 rotationAxis)
+    {
+        // Create a list of all points from the OBB hull
+        List<Vector2> shapeAPoints = new List<Vector2>();
+        shapeAPoints.Add(new Vector2(OBB.GetPosition().x + OBB.GetDimensions().x, OBB.GetPosition().y + OBB.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(OBB.GetPosition().x - OBB.GetDimensions().x, OBB.GetPosition().y - OBB.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(OBB.GetPosition().x - OBB.GetDimensions().x, OBB.GetPosition().y + OBB.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(OBB.GetPosition().x + OBB.GetDimensions().x, OBB.GetPosition().y - OBB.GetDimensions().y));
+
+        // Initialize min and max of OBB shape
+        Vector2 shapeAMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+        Vector2 shapeAPos = Vector2.Dot(OBB.GetPosition(), rotationAxis) * rotationAxis;
+
+        // Initialize min and max and position of circle hull
+        Vector2 circleMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 circleMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+        Vector2 circlePos = Vector2.Dot(circle.GetPosition(), rotationAxis) * rotationAxis;
+
+        // Initialize all points for axis checks
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            // Rotate original point
+            shapeAPoints[i] = new Vector2(Mathf.Cos(OBB.GetRotation()) * (shapeAPoints[i].x - OBB.GetPosition().x) - Mathf.Sin(OBB.GetRotation()) * (shapeAPoints[i].y - OBB.GetPosition().y) + OBB.GetPosition().x,
+                                          Mathf.Sin(OBB.GetRotation()) * (shapeAPoints[i].x - OBB.GetPosition().x) + Mathf.Cos(OBB.GetRotation()) * (shapeAPoints[i].y - OBB.GetPosition().y) + OBB.GetPosition().y);
+
+            // Project the point onto the rotation axis
+            shapeAPoints[i] = Vector2.Dot(shapeAPoints[i], rotationAxis) * rotationAxis;
+        }
+
+        // Iterate through all points to find the minimum and maximum points
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            // Is the current point less than the current minimum?
+            if (shapeAPoints[i].x <= shapeAMin.x && shapeAPoints[i].y <= shapeAMin.y)
+            {
+                // If yes, then make this point the new min
+                shapeAMin = shapeAPoints[i];
+            }
+
+            // Is the current point less than the current maximum?
+            if (shapeAPoints[i].x >= shapeAMax.x && shapeAPoints[i].y >= shapeAMax.y)
+            {
+                // If yes, then make this point the new max
+                shapeAMax = shapeAPoints[i];
+            }
+        }
+
+        // Calculate the minimum and maximum of the circle hull
+        circleMin = circlePos + (rotationAxis * circle.GetDimensions().x * -1);
+        circleMax = circlePos + (rotationAxis * circle.GetDimensions().x);
+
+        // Calculate half extents along x axis for each object
+        float a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
+        float b_extent = (circleMax.x - circleMin.x) / 2.0f;
+
+        Vector2 n = (circlePos - shapeAPos);
+
+        // Calculate overlap on x axis
+        float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
+
+        a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
+        b_extent = (shapeAMax.y - shapeAMin.y) / 2.0f;
+
+        float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
+
+        if (x_overlap > y_overlap)
+        {
+            return x_overlap;
+        }
+        else
+        {
+            return y_overlap;
+        }
+    }
 
 
 
@@ -433,6 +525,9 @@ public class CollisionManager : MonoBehaviour
         Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
         Vector2 shapeBMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
         Vector2 shapeBMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+
+        Vector2 shapeAPos;
+        Vector2 shapeBPos;
 
         // Initialize all points for axis checks
         for (int i = 0; i < shapeAPoints.Count; i++)
@@ -493,6 +588,105 @@ public class CollisionManager : MonoBehaviour
     }
 
 
+
+    public static float GetBounds(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
+    {
+        // Create a list of all points from the OBB hull for shape A
+        List<Vector2> shapeAPoints = new List<Vector2>();
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+
+        // Create a list of all points from the OBB hull for shape B
+        List<Vector2> shapeBPoints = new List<Vector2>();
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+
+        // Initialize min and max of OBB shape
+        Vector2 shapeAMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+        Vector2 shapeBMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeBMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+
+        Vector2 shapeAPos = Vector2.Dot(shapeA.GetPosition(), rotationAxis) * rotationAxis;
+        Vector2 shapeBPos = Vector2.Dot(shapeB.GetPosition(), rotationAxis) * rotationAxis;
+
+        // Initialize all points for axis checks
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            // Rotate original point
+            shapeAPoints[i] = new Vector2(Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) - Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().x,
+                                          Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) + Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().y);
+
+            // Project the point onto the rotation axis
+            shapeAPoints[i] = Vector2.Dot(shapeAPoints[i], rotationAxis) * rotationAxis;
+
+            // Rotate original point
+            shapeBPoints[i] = new Vector2(Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) - Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().x,
+                                          Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) + Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().y);
+
+            // Project the point onto the rotation axis
+            shapeBPoints[i] = Vector2.Dot(shapeBPoints[i], rotationAxis) * rotationAxis;
+        }
+
+        // Iterate through all points to find the minimum and maximum points
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            // Is the current point less than the current minimum?
+            if (shapeAPoints[i].x <= shapeAMin.x && shapeAPoints[i].y <= shapeAMin.y)
+            {
+                // If yes, then make this point the new min
+                shapeAMin = shapeAPoints[i];
+            }
+
+            // Is the current point more than the current maximum?
+            if (shapeAPoints[i].x >= shapeAMax.x && shapeAPoints[i].y >= shapeAMax.y)
+            {
+                // If yes, then make this point the new max
+                shapeAMax = shapeAPoints[i];
+            }
+
+            // Is the current point less than the current minimum?
+            if (shapeBPoints[i].x <= shapeBMin.x && shapeBPoints[i].y <= shapeBMin.y)
+            {
+                // If yes, then make this point the new min
+                shapeBMin = shapeBPoints[i];
+            }
+
+            // Is the current point more than the current maximum?
+            if (shapeBPoints[i].x >= shapeBMax.x && shapeBPoints[i].y >= shapeBMax.y)
+            {
+                // If yes, then make this point the new max
+                shapeBMax = shapeBPoints[i];
+            }
+        }
+
+        // Calculate half extents along x axis for each object
+        float a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
+        float b_extent = (shapeBMax.x - shapeBMin.x) / 2.0f;
+
+        Vector2 n = (shapeBPos - shapeAPos);
+
+        // Calculate overlap on x axis
+        float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
+
+        a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
+        b_extent = (shapeAMax.y - shapeAMin.y) / 2.0f;
+
+        float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
+
+        if (x_overlap > y_overlap)
+        {
+            return x_overlap;
+        }
+        else
+        {
+            return y_overlap;
+        }
+    }
 
 
 
@@ -620,7 +814,7 @@ public class CollisionManager : MonoBehaviour
         // Calculate overlap on x axis
         float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
 
-  // SAT test on x axis
+        // SAT test on x axis
         if (x_overlap > 0)
         {
             // Calculate half extents along x axis for each object
@@ -630,7 +824,7 @@ public class CollisionManager : MonoBehaviour
             // Calculate overlap on y axis
             float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
 
-    // SAT test on y axis
+            // SAT test on y axis
             if (y_overlap > 0)
             {
                 // Find out which axis is axis of least penetration
@@ -645,5 +839,18 @@ public class CollisionManager : MonoBehaviour
             }
         }
         return 0.0f;
+    }
+
+    public static float GetOBBPenetration(List<float> penetrations)
+    {
+        float penetration = -Mathf.Infinity;
+        for (int i = 0; i < penetrations.Count; i++)
+        {
+            if (penetrations[i] > penetration)
+            {
+                penetration = penetrations[i];
+            }
+        }
+        return penetration;
     }
 }
