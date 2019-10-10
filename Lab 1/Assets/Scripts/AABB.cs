@@ -12,8 +12,13 @@ public class AABB : CollisionHull2D
     {
         collisionType = CollisionHullType2D.AABB;
 
+        
+
         // Initialize position of Collision hull
         position = transform.position;
+
+        minCorner = new Vector2(position.x - halfLength, position.y - halfWidth);
+        maxCorner = new Vector2(position.x + halfLength, position.y + halfWidth);
 
         // Add hull to hull list
         CollisionManager.manager.InsertToParticleList(this);

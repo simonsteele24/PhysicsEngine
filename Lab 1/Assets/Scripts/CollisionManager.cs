@@ -176,7 +176,7 @@ public class CollisionManager : MonoBehaviour
     public static CollisionInfo AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
-        bool xAxisCheck = a.GetMaximumCorner().x >= b.GetMinimumCorner().x && b.GetMinimumCorner().x <= a.GetMaximumCorner().x;
+        bool xAxisCheck = a.GetMaximumCorner().x >= b.GetMinimumCorner().x && b.GetMaximumCorner().x >= a.GetMinimumCorner().x;
         bool yAxisCheck = a.GetMinimumCorner().y <= b.GetMaximumCorner().y && b.GetMinimumCorner().y <= a.GetMaximumCorner().y;
 
         // Do the two checks pass?
@@ -189,11 +189,14 @@ public class CollisionManager : MonoBehaviour
 
         float overlap1 = (a.GetMaximumCorner() - b.GetMaximumCorner()).magnitude;
 
-        //Debug.Log(overlap1);
-        Debug.Log(a.GetMaximumCorner() - b.GetMinimumCorner());
-        Debug.Log(b.GetMaximumCorner() - a.GetMinimumCorner());
+        float penetration = 0.0f;
+        if (xAxisCheck && yAxisCheck)
+        {
+            penetration = GetAABBPenetration(a, b);
+        }
 
-        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { 0.5f });
+
+        return new CollisionInfo(xAxisCheck && yAxisCheck, a, b, CalculateSeparatingVelocity(a, b), new List<float>() { penetration });
     }
 
 
@@ -250,8 +253,6 @@ public class CollisionManager : MonoBehaviour
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
-
-        Debug.Log((a.GetDimensions().x * a.GetDimensions().x) - Vector2.Dot(distance, distance));
         // Return result
         return new CollisionInfo(axisCheck, b, a, CalculateSeparatingVelocity(a, b), new List<float>() {  (a.GetDimensions().x * a.GetDimensions().x) - Vector2.Dot(distance,distance) });
     }
@@ -603,5 +604,46 @@ public class CollisionManager : MonoBehaviour
         collision.b.transform.position += particleMovementB;
         collision.b.GetComponent<Particle2D>().position = collision.b.transform.position;
         collision.b.SetPosition(collision.b.transform.position);
+    }
+
+
+
+
+    public static float GetAABBPenetration(CollisionHull2D a, CollisionHull2D b)
+    {
+        // Calculate half extents along x axis for each object
+        float a_extent = (a.GetMaximumCorner().x - a.GetMinimumCorner().x) / 2.0f;
+        float b_extent = (b.GetMaximumCorner().x - b.GetMinimumCorner().x) / 2.0f;
+
+        Vector2 n = (b.GetPosition() - a.GetPosition());
+
+        // Calculate overlap on x axis
+        float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
+
+  // SAT test on x axis
+        if (x_overlap > 0)
+        {
+            // Calculate half extents along x axis for each object
+            a_extent = (a.GetMaximumCorner().y - a.GetMinimumCorner().y) / 2.0f;
+            b_extent = (b.GetMaximumCorner().y - b.GetMinimumCorner().y) / 2.0f;
+
+            // Calculate overlap on y axis
+            float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
+
+    // SAT test on y axis
+            if (y_overlap > 0)
+            {
+                // Find out which axis is axis of least penetration
+                if (x_overlap > y_overlap)
+                {
+                    return x_overlap;
+                }
+                else
+                {
+                    return y_overlap;
+                }
+            }
+        }
+        return 0.0f;
     }
 }

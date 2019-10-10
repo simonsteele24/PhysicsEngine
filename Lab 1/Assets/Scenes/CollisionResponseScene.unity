@@ -344,7 +344,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &278132951
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,7 +354,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 278132950}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c6c0a4588c7ba249a6a2a87d556b0d3, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e59d5fbaf426d04c90b3bd5ade699b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   collisionType: 0
@@ -381,7 +381,7 @@ MonoBehaviour:
   outerRadius: 0
   length: 0
   position: {x: 0, y: 0}
-  velocity: {x: 5, y: 0}
+  velocity: {x: 0.5, y: 0}
   acceleration: {x: 0, y: 0}
   rotation: 0
   angularVelocity: 0
@@ -633,7 +633,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1175515077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -643,7 +643,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1175515076}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c6c0a4588c7ba249a6a2a87d556b0d3, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e59d5fbaf426d04c90b3bd5ade699b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   collisionType: 0
@@ -670,7 +670,7 @@ MonoBehaviour:
   outerRadius: 0
   length: 0
   position: {x: 0, y: 0}
-  velocity: {x: -5, y: 0}
+  velocity: {x: -0.5, y: 0}
   acceleration: {x: 0, y: 0}
   rotation: 0
   angularVelocity: 0
