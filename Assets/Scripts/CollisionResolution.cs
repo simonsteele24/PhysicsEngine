@@ -291,18 +291,18 @@ public class CollisionResolution : MonoBehaviour
 
 
 
-    public static void ResolveCollisions(List<CollisionManager.CollisionInfo> collisions)
+    public static void ResolveCollisions(List<CollisionManager.CollisionInfo> collisions, float dt)
     {
         for (int i = 0; i < collisions.Count; i++)
         {
             ResolvePenetration(collisions[i]);
-            ResolveVelocities(collisions[i]);
+            ResolveVelocities(collisions[i],dt);
         }
     }
 
 
 
-    public static void ResolveVelocities(CollisionManager.CollisionInfo collision)
+    public static void ResolveVelocities(CollisionManager.CollisionInfo collision, float dt)
     {
         if (!collision.status)
         {
@@ -310,6 +310,23 @@ public class CollisionResolution : MonoBehaviour
         }
 
         float newSeperatingVelocity = -collision.separatingVelocity * collision.a.GetComponent<Particle2D>().restitiution;
+
+        /*// Check the velocity buildup due to acceleration only.
+        Vector2 accCausedVelocity = collision.a.GetComponent<Particle2D>().velocity += collision.b.GetComponent<Particle2D>().velocity;
+
+
+
+        float accCausedSepVelocity = Vector2.Dot(accCausedVelocity, accCausedVelocity) / 2.0f;
+        accCausedSepVelocity = Mathf.Abs(accCausedSepVelocity);
+
+        if (accCausedSepVelocity < CollisionManager.RESTING_CONTACT_VALUE)
+        {
+            Debug.Log("Here!");
+            newSeperatingVelocity = 0;
+        }*/
+
+
+
         float deltaVelocity = newSeperatingVelocity - collision.separatingVelocity;
 
         float totalInverseMass = collision.a.GetComponent<Particle2D>().invMass;

@@ -21,8 +21,8 @@ public class Particle2D : MonoBehaviour
     public float innerRadius;
     public float outerRadius;
     public float length;
+    public bool hasGravity = false;
     public float restitiution;
-
 
     // Vector2's
     public Vector2 position;
@@ -44,7 +44,7 @@ public class Particle2D : MonoBehaviour
     private float torque = 0;
     [Range(0, Mathf.Infinity)] public float mass;
     public float invMass;
-
+    public float deltaTime;
 
     private float Mass
     {
@@ -96,6 +96,14 @@ public class Particle2D : MonoBehaviour
             ApplyTorque(torqueForces[i].force, torqueForces[i].position);
         }
 
+        // Change rotation to the rotational variables
+        if (hasGravity)
+        {
+            AddForce(ForceGenerator.GenerateForce_Gravtity(mass, -0.99f, WORLD_UP));
+        }
+
+        deltaTime = Time.fixedDeltaTime;
+
         // Update postion and velocity
         updateRotationEulerExplicit(Time.fixedDeltaTime);
         updatePositionEulerExplicit(Time.fixedDeltaTime);
@@ -104,9 +112,6 @@ public class Particle2D : MonoBehaviour
         UpdateAcceleration();
         UpdateAngularAcceleration();
 
-        
-
-        // Change rotation to the rotational variables
         transform.eulerAngles = new Vector3(0, 0, rotation);
     }
 

@@ -41,7 +41,7 @@ public class CollisionManager : MonoBehaviour
 
     private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>>(new CollisionPairKey.EqualityComparitor());
 
-
+    public static float RESTING_CONTACT_VALUE = 0.1f;
 
     // Lists
     public List<CollisionHull2D> particles;
@@ -118,7 +118,7 @@ public class CollisionManager : MonoBehaviour
                 }
             }
         }
-        CollisionResolution.ResolveCollisions(collisions);
+        CollisionResolution.ResolveCollisions(collisions,Time.deltaTime);
     }
 
 
@@ -259,38 +259,22 @@ public class CollisionManager : MonoBehaviour
     // This function calculate Circle to ABB collisions
     public static CollisionInfo CircleToOBBCollision(CollisionHull2D a, CollisionHull2D b)
     {
-        // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
-        Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
+        Vector2 closestPointToCircle = new Vector2(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)));
 
-        // Do axis checks
+        Vector2 distance = a.GetPosition() - closestPointToCircle;
+        float distanceSquared = Vector2.Dot(distance, distance);
 
-        List<float> penetration = new List<float>();
+        bool axisCheck = distanceSquared < a.GetDimensions().x * a.GetDimensions().x;
 
-        penetration.Add(CollisionResolution.GetOBBCircleBounds(a, b, ARHat));
-        bool axisCheck = CheckOBBAxisForCircle(a, b, ARHat);
-
-        if (!axisCheck)
-        {
-            return new CollisionInfo(false, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
-        }
-
-        penetration.Add(CollisionResolution.GetOBBCircleBounds(a, b, AUHat));
-        axisCheck = CheckOBBAxisForCircle(a, b, AUHat);
-
-        // Do all checks pass?
+        // Does the check pass?
         if (axisCheck)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
-        else
-        {
-            return new CollisionInfo(false, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), new List<float>() { a.GetDimensions().x + b.GetDimensions().x * (a.GetDimensions().x + b.GetDimensions().x) - Vector2.Dot(a.GetPosition() - b.GetPosition(), a.GetPosition() - b.GetPosition()) });
-        }
 
         // return result
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), new List<float>() { CollisionResolution.GetOBBPenetration(penetration) });
+        return new CollisionInfo(axisCheck, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), new List<float>() { (a.GetDimensions().x - Mathf.Sqrt(distanceSquared)) });
     }
 
 
