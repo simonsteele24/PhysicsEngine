@@ -72,11 +72,11 @@ public class CollisionResolution : MonoBehaviour
 
         if (x_overlap > y_overlap)
         {
-            return x_overlap;
+            return y_overlap;
         }
         else
         {
-            return y_overlap;
+            return x_overlap;
         }
     }
 
@@ -259,11 +259,11 @@ public class CollisionResolution : MonoBehaviour
 
         if (x_overlap > y_overlap)
         {
-            return x_overlap;
+            return y_overlap;
         }
         else
         {
-            return y_overlap;
+            return x_overlap;
         }
     }
 
@@ -295,8 +295,11 @@ public class CollisionResolution : MonoBehaviour
     {
         for (int i = 0; i < collisions.Count; i++)
         {
-            ResolvePenetration(collisions[i]);
-            ResolveVelocities(collisions[i],dt);
+            if (collisions[i].separatingVelocity > 0)
+            {
+                ResolvePenetration(collisions[i]);
+                ResolveVelocities(collisions[i], dt);
+            }
         }
     }
 
@@ -311,19 +314,21 @@ public class CollisionResolution : MonoBehaviour
 
         float newSeperatingVelocity = -collision.separatingVelocity * collision.a.GetComponent<Particle2D>().restitiution;
 
-        /*// Check the velocity buildup due to acceleration only.
-        Vector2 accCausedVelocity = collision.a.GetComponent<Particle2D>().velocity += collision.b.GetComponent<Particle2D>().velocity;
+        // Check the velocity buildup due to acceleration only.
+        Vector2 accCausedVelocity = collision.a.GetComponent<Particle2D>().acceleration - collision.b.GetComponent<Particle2D>().acceleration;
+        float accCausedSepVelocity = Vector2.Dot(accCausedVelocity, collision.normal) * Time.fixedDeltaTime;
 
 
 
-        float accCausedSepVelocity = Vector2.Dot(accCausedVelocity, accCausedVelocity) / 2.0f;
-        accCausedSepVelocity = Mathf.Abs(accCausedSepVelocity);
-
-        if (accCausedSepVelocity < CollisionManager.RESTING_CONTACT_VALUE)
+        // If we’ve got a closing velocity due to aceleration buildup,
+        // remove it from the new separating velocity.
+        if (accCausedSepVelocity < 0)
         {
-            Debug.Log("Here!");
-            newSeperatingVelocity = 0;
-        }*/
+            newSeperatingVelocity += 1 * accCausedSepVelocity;
+            // Make sure we haven’t removed more than was
+            // there to remove.
+            if (newSeperatingVelocity < 0) newSeperatingVelocity = 0;
+        }
 
 
 
@@ -348,6 +353,7 @@ public class CollisionResolution : MonoBehaviour
 
     public static void ResolvePenetration(CollisionManager.CollisionInfo collision)
     {
+
         if (collision.penetration <= 0) { return; }
 
         float totalInvMass = collision.a.GetComponent<Particle2D>().invMass;
@@ -363,7 +369,7 @@ public class CollisionResolution : MonoBehaviour
         Vector3 particleMovementA;
         Vector3 particleMovementB;
 
-        if (collision.a.GetPosition().x > collision.b.GetPosition().x)
+        if (collision.a.GetPosition().y < collision.b.GetPosition().y)
         {
             particleMovementA = movePerIMass * collision.a.GetComponent<Particle2D>().invMass;
             particleMovementB = -movePerIMass * collision.b.GetComponent<Particle2D>().invMass;
@@ -389,10 +395,11 @@ public class CollisionResolution : MonoBehaviour
     public static float GetAABBPenetration(CollisionHull2D a, CollisionHull2D b)
     {
         // Calculate half extents along x axis for each object
-        float a_extent = (a.GetMaximumCorner().x - a.GetMinimumCorner().x) / 2.0f;
-        float b_extent = (b.GetMaximumCorner().x - b.GetMinimumCorner().x) / 2.0f;
+        float a_extent = a.GetDimensions().x;
+        float b_extent = b.GetDimensions().x;
 
         Vector2 n = (b.GetPosition() - a.GetPosition());
+        n = new Vector2(Mathf.Abs(n.x), Mathf.Abs(n.y));
 
         // Calculate overlap on x axis
         float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
@@ -401,8 +408,8 @@ public class CollisionResolution : MonoBehaviour
         if (x_overlap > 0)
         {
             // Calculate half extents along x axis for each object
-            a_extent = (a.GetMaximumCorner().y - a.GetMinimumCorner().y) / 2.0f;
-            b_extent = (b.GetMaximumCorner().y - b.GetMinimumCorner().y) / 2.0f;
+            a_extent = a.GetDimensions().y;
+            b_extent = b.GetDimensions().y;
 
             // Calculate overlap on y axis
             float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
@@ -413,11 +420,11 @@ public class CollisionResolution : MonoBehaviour
                 // Find out which axis is axis of least penetration
                 if (x_overlap > y_overlap)
                 {
-                    return x_overlap;
+                    return y_overlap;
                 }
                 else
                 {
-                    return y_overlap;
+                    return x_overlap;
                 }
             }
         }

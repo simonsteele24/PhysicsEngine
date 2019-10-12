@@ -141,7 +141,7 @@ public class CollisionManager : MonoBehaviour
         // Calculate the distance between both colliders
         Vector2 distance = a.GetPosition() - b.GetPosition();
 
-        bool axisCheck = Vector2.Dot(distance, distance) <= (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x);
+        bool axisCheck = Vector2.Dot(distance, distance) < (a.GetDimensions().x + b.GetDimensions().x) * (a.GetDimensions().x + b.GetDimensions().x);
 
         // Are the Radii less than or equal to the distance between both circles?
         if (axisCheck)
@@ -163,8 +163,8 @@ public class CollisionManager : MonoBehaviour
     public static CollisionInfo AABBToAABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
         // Do an axis check on both the x and y axes
-        bool xAxisCheck = a.GetMaximumCorner().x >= b.GetMinimumCorner().x && b.GetMaximumCorner().x >= a.GetMinimumCorner().x;
-        bool yAxisCheck = a.GetMinimumCorner().y <= b.GetMaximumCorner().y && b.GetMinimumCorner().y <= a.GetMaximumCorner().y;
+        bool xAxisCheck = a.GetMaximumCorner().x > b.GetMinimumCorner().x && b.GetMaximumCorner().x > a.GetMinimumCorner().x;
+        bool yAxisCheck = a.GetMinimumCorner().y < b.GetMaximumCorner().y && b.GetMinimumCorner().y < a.GetMaximumCorner().y;
 
         // Do the two checks pass?
         if (xAxisCheck && yAxisCheck)
@@ -172,9 +172,6 @@ public class CollisionManager : MonoBehaviour
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
         }
-
-
-        float overlap1 = (a.GetMaximumCorner() - b.GetMaximumCorner()).magnitude;
 
         float penetration = 0.0f;
         if (xAxisCheck && yAxisCheck)
