@@ -27,10 +27,20 @@ public class CollisionManager : MonoBehaviour
         public CollisionInfo(bool _status, CollisionHull2D _a, CollisionHull2D _b, float _separatingVelocity, List<float> penetrationList)
         {
             status = _status;
-            a = _a;
-            b = _b;
+
+            if (_a.collisionType > _b.collisionType)
+            {
+                a = _b;
+                b = _a;
+            }
+            else
+            {
+                a = _a;
+                b = _b;
+            }
+
             separatingVelocity = _separatingVelocity;
-            normal = (_b.GetPosition() - _a.GetPosition()).normalized;
+            normal = (b.GetPosition() - a.GetPosition()).normalized;
             penetration = penetrationList[0];
         }
 

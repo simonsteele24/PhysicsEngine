@@ -308,7 +308,7 @@ MonoBehaviour:
   rotation: 0
   angularVelocity: 0
   angularAcceleration: 0
-  mass: 90000
+  mass: 0
   invMass: 0
   deltaTime: 0
 --- !u!23 &64416590
@@ -1313,7 +1313,7 @@ MonoBehaviour:
   rotation: 25
   angularVelocity: 0
   angularAcceleration: 0
-  mass: 90000
+  mass: 0
   invMass: 0
   deltaTime: 0
 --- !u!23 &1536284822
@@ -2033,7 +2033,7 @@ MonoBehaviour:
   rotation: 0
   angularVelocity: 0
   angularAcceleration: 0
-  mass: 90000
+  mass: 0
   invMass: 0
   deltaTime: 0
 --- !u!23 &2077841085
