@@ -4,84 +4,6 @@ using UnityEngine;
 
 public class CollisionResolution : MonoBehaviour
 {
-    public static float GetOBBCircleBounds(CollisionHull2D circle, CollisionHull2D OBB, Vector2 rotationAxis)
-    {
-        // Create a list of all points from the OBB hull
-        List<Vector2> shapeAPoints = new List<Vector2>();
-        shapeAPoints.Add(new Vector2(OBB.GetPosition().x + OBB.GetDimensions().x, OBB.GetPosition().y + OBB.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(OBB.GetPosition().x - OBB.GetDimensions().x, OBB.GetPosition().y - OBB.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(OBB.GetPosition().x - OBB.GetDimensions().x, OBB.GetPosition().y + OBB.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(OBB.GetPosition().x + OBB.GetDimensions().x, OBB.GetPosition().y - OBB.GetDimensions().y));
-
-        // Initialize min and max of OBB shape
-        Vector2 shapeAMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
-        Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
-        Vector2 shapeAPos = Vector2.Dot(OBB.GetPosition(), rotationAxis) * rotationAxis;
-
-        // Initialize min and max and position of circle hull
-        Vector2 circleMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
-        Vector2 circleMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
-        Vector2 circlePos = Vector2.Dot(circle.GetPosition(), rotationAxis) * rotationAxis;
-
-        // Initialize all points for axis checks
-        for (int i = 0; i < shapeAPoints.Count; i++)
-        {
-            // Rotate original point
-            shapeAPoints[i] = new Vector2(Mathf.Cos(OBB.GetRotation()) * (shapeAPoints[i].x - OBB.GetPosition().x) - Mathf.Sin(OBB.GetRotation()) * (shapeAPoints[i].y - OBB.GetPosition().y) + OBB.GetPosition().x,
-                                          Mathf.Sin(OBB.GetRotation()) * (shapeAPoints[i].x - OBB.GetPosition().x) + Mathf.Cos(OBB.GetRotation()) * (shapeAPoints[i].y - OBB.GetPosition().y) + OBB.GetPosition().y);
-
-            // Project the point onto the rotation axis
-            shapeAPoints[i] = Vector2.Dot(shapeAPoints[i], rotationAxis) * rotationAxis;
-        }
-
-        // Iterate through all points to find the minimum and maximum points
-        for (int i = 0; i < shapeAPoints.Count; i++)
-        {
-            // Is the current point less than the current minimum?
-            if (shapeAPoints[i].x <= shapeAMin.x && shapeAPoints[i].y <= shapeAMin.y)
-            {
-                // If yes, then make this point the new min
-                shapeAMin = shapeAPoints[i];
-            }
-
-            // Is the current point less than the current maximum?
-            if (shapeAPoints[i].x >= shapeAMax.x && shapeAPoints[i].y >= shapeAMax.y)
-            {
-                // If yes, then make this point the new max
-                shapeAMax = shapeAPoints[i];
-            }
-        }
-
-        // Calculate the minimum and maximum of the circle hull
-        circleMin = circlePos + (rotationAxis * circle.GetDimensions().x * -1);
-        circleMax = circlePos + (rotationAxis * circle.GetDimensions().x);
-
-        // Calculate half extents along x axis for each object
-        float a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
-        float b_extent = (circleMax.x - circleMin.x) / 2.0f;
-
-        Vector2 n = (circlePos - shapeAPos);
-
-        // Calculate overlap on x axis
-        float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
-
-        a_extent = (shapeAMax.x - shapeAMin.x) / 2.0f;
-        b_extent = (shapeAMax.y - shapeAMin.y) / 2.0f;
-
-        float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
-
-        if (x_overlap > y_overlap)
-        {
-            return y_overlap;
-        }
-        else
-        {
-            return x_overlap;
-        }
-    }
-
-
-
     // This function checks for a collision between two objects by projecting onto a specific axis
     public static bool CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
     {
@@ -104,9 +26,6 @@ public class CollisionResolution : MonoBehaviour
         Vector2 shapeAMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
         Vector2 shapeBMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
         Vector2 shapeBMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
-
-        Vector2 shapeAPos;
-        Vector2 shapeBPos;
 
         // Initialize all points for axis checks
         for (int i = 0; i < shapeAPoints.Count; i++)
@@ -269,6 +188,63 @@ public class CollisionResolution : MonoBehaviour
 
 
 
+    public static bool CheckAABBOBBAxis (CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
+    {
+        // Create a list of all points from the OBB hull for shape A
+        List<Vector2> shapeBPoints = new List<Vector2>();
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+
+
+        // Initialize min and max of OBB shape
+        Vector2 shapeAMin = Vector2.Dot(shapeA.GetMinimumCorner(), rotationAxis) * rotationAxis;
+        Vector2 shapeAMax = Vector2.Dot(shapeA.GetMaximumCorner(), rotationAxis) * rotationAxis;
+        Vector2 shapeBMin = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 shapeBMax = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+
+        // Initialize all points for axis checks
+        for (int i = 0; i < shapeBPoints.Count; i++)
+        {
+
+            // Rotate original point
+            shapeBPoints[i] = new Vector2(Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) - Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().x,
+                                          Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) + Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().y);
+
+            // Project the point onto the rotation axis
+            shapeBPoints[i] = Vector2.Dot(shapeBPoints[i], rotationAxis) * rotationAxis;
+        }
+
+        // Iterate through all points to find the minimum and maximum points
+        for (int i = 0; i < shapeBPoints.Count; i++)
+        {
+
+            // Is the current point less than the current minimum?
+            if (shapeBPoints[i].x <= shapeBMin.x && shapeBPoints[i].y <= shapeBMin.y)
+            {
+                // If yes, then make this point the new min
+                shapeBMin = shapeBPoints[i];
+            }
+
+            // Is the current point more than the current maximum?
+            if (shapeBPoints[i].x >= shapeBMax.x && shapeBPoints[i].y >= shapeBMax.y)
+            {
+                // If yes, then make this point the new max
+                shapeBMax = shapeBPoints[i];
+            }
+        }
+
+        // Do axis checks
+        bool xAxisCheck = shapeAMin.x <= shapeBMax.x && shapeBMin.x <= shapeAMax.x;
+        bool yAxisCheck = shapeAMin.y <= shapeBMax.y && shapeBMin.y <= shapeAMax.y;
+
+        // Return result
+        return xAxisCheck && yAxisCheck;
+    }
+
+
+
     
 
 
@@ -312,7 +288,7 @@ public class CollisionResolution : MonoBehaviour
             return;
         }
 
-        float newSeperatingVelocity = -collision.separatingVelocity * collision.a.GetComponent<Particle2D>().restitiution;
+        float newSeperatingVelocity = -collision.separatingVelocity * CollisionManager.UNIVERSAL_COEFFICIENT_OF_RESTITUTION;
 
         // Check the velocity buildup due to acceleration only.
         Vector2 accCausedVelocity = collision.a.GetComponent<Particle2D>().acceleration - collision.b.GetComponent<Particle2D>().acceleration;
@@ -389,54 +365,12 @@ public class CollisionResolution : MonoBehaviour
         collision.b.SetPosition(collision.b.transform.position);
     }
 
-
-
-
-    public static float GetAABBPenetration(CollisionHull2D a, CollisionHull2D b)
-    {
-        // Calculate half extents along x axis for each object
-        float a_extent = a.GetDimensions().x;
-        float b_extent = b.GetDimensions().x;
-
-        Vector2 n = (b.GetPosition() - a.GetPosition());
-        n = new Vector2(Mathf.Abs(n.x), Mathf.Abs(n.y));
-
-        // Calculate overlap on x axis
-        float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
-
-        // SAT test on x axis
-        if (x_overlap > 0)
-        {
-            // Calculate half extents along x axis for each object
-            a_extent = a.GetDimensions().y;
-            b_extent = b.GetDimensions().y;
-
-            // Calculate overlap on y axis
-            float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
-
-            // SAT test on y axis
-            if (y_overlap > 0)
-            {
-                // Find out which axis is axis of least penetration
-                if (x_overlap > y_overlap)
-                {
-                    return y_overlap;
-                }
-                else
-                {
-                    return x_overlap;
-                }
-            }
-        }
-        return 0.0f;
-    }
-
     public static float GetOBBPenetration(List<float> penetrations)
     {
         float penetration = -Mathf.Infinity;
         for (int i = 0; i < penetrations.Count; i++)
         {
-            if (penetrations[i] > penetration)
+            if (penetrations[i] < penetration && penetrations[i] >= 0)
             {
                 penetration = penetrations[i];
             }

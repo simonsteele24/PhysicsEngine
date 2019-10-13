@@ -10,6 +10,7 @@ public class CollisionPairKey
     private CollisionHullType2D[] _collTypes = new CollisionHullType2D[2];
     public CollisionPairKey(CollisionHullType2D collTypeA, CollisionHullType2D collTypeB)
     {
+
         if (collTypeA <= collTypeB)
         {
             _collTypes[0] = collTypeA;
