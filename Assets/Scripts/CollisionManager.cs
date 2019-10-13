@@ -12,34 +12,41 @@ public enum CollisionHullType2D
 
 public class CollisionManager : MonoBehaviour
 {
+    // This function represents the information about a given collision
     public class CollisionInfo
     {
+        // Vector2's
         public Vector2 normal;
+
+        // Floats
+        public float separatingVelocity;
         public float penetration;
+
+        // Collision Hulls
         public CollisionHull2D a;
         public CollisionHull2D b;
 
-        public float separatingVelocity;
 
-        public bool status;
-
-
-        public CollisionInfo(bool _status, CollisionHull2D _a, CollisionHull2D _b, float _separatingVelocity, float _penetration)
+        // This function intializes the collision info class based on given information
+        public CollisionInfo(CollisionHull2D _a, CollisionHull2D _b, float _penetration)
         {
-            status = _status;
-
+            // Is collision A's collision type have less priority to collision B? 
             if (_a.collisionType > _b.collisionType)
             {
+                // If yes, then switch their priorities
                 a = _b;
                 b = _a;
             }
             else
             {
+                // If no, then keep them as so
                 a = _a;
                 b = _b;
             }
 
-            separatingVelocity = _separatingVelocity;
+
+            // Based on collision hulls, calculate the rest of the values
+            separatingVelocity = CollisionResolution.CalculateSeparatingVelocity(a,b);
             normal = (b.GetPosition() - a.GetPosition()).normalized;
             penetration = _penetration;
         }
@@ -51,6 +58,7 @@ public class CollisionManager : MonoBehaviour
 
     private Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>> _collisionTypeCollisionTestFunctions = new Dictionary<CollisionPairKey, Func<CollisionHull2D, CollisionHull2D, CollisionInfo>>(new CollisionPairKey.EqualityComparitor());
 
+    // Constants
     public static float RESTING_CONTACT_VALUE = 0.1f;
     public static float UNIVERSAL_COEFFICIENT_OF_RESTITUTION = 0.5f;
 
@@ -124,19 +132,7 @@ public class CollisionManager : MonoBehaviour
 
                         if (!isDuplicate)
                         {
-
                             collisions.Add(collision);
-
-                            if (!particles[x].GetCollidingChecker())
-                                particles[x].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
-                            if (!particles[y].GetCollidingChecker())
-                                particles[y].GetComponent<Renderer>().material.color = new Color(Convert.ToInt32(!collisions[collisions.Count - 1].status), Convert.ToInt32(collisions[collisions.Count - 1].status), 0);
-
-                            if (collisions[collisions.Count - 1].status)
-                            {
-                                particles[x].ToggleCollidingChecker();
-                                particles[y].ToggleCollidingChecker();
-                            }
                         }
                     }
                 }
@@ -175,11 +171,12 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
+            // If no, return nothing
             return null;
         }
 
         // Return result
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), penetration);
+        return new CollisionInfo(a, b, penetration);
     }
 
 
@@ -196,6 +193,7 @@ public class CollisionManager : MonoBehaviour
         float a_extent = a.GetDimensions().x;
         float b_extent = b.GetDimensions().x;
 
+        // Get the distance between a and b
         Vector2 n = (b.GetPosition() - a.GetPosition());
         n = new Vector2(Mathf.Abs(n.x), Mathf.Abs(n.y));
 
@@ -218,10 +216,12 @@ public class CollisionManager : MonoBehaviour
                 // Find out which axis is axis of least penetration
                 if (x_overlap > y_overlap)
                 {
+                    // If it is Y, then return Y's overlap
                     penetration = y_overlap;
                 }
                 else
                 {
+                    // If it is Y, then return X's overlap
                     penetration = x_overlap;
                 }
             }
@@ -239,8 +239,11 @@ public class CollisionManager : MonoBehaviour
             return null;
         }
 
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), penetration);
+        // Return full details of the Collision list if the two collide
+        return new CollisionInfo(a, b, penetration);
     }
+
+
 
 
 
@@ -252,18 +255,22 @@ public class CollisionManager : MonoBehaviour
         Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
         Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
-        List<float> penetration = new List<float>();
+        // Create a list of all penetrations from all axes
+        List<float> overlaps = new List<float>();
 
         // Do axis checks
-        penetration.Add(CollisionResolution.GetBounds(a, b, AUHat));
+        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
         bool axisCheck = CollisionResolution.CheckAABBOBBAxis(a, b, AUHat);
 
+        // Do all checks pass?
         if (!axisCheck)
         {
+            // If no, then return nothing
             return null;
         }
 
-        penetration.Add(CollisionResolution.GetBounds(a, b, ARHat));
+        // Do secondary axis checks
+        overlaps.Add(CollisionResolution.GetBounds(a, b, ARHat));
         axisCheck = CollisionResolution.CheckAABBOBBAxis(a, b, ARHat);
 
         // Do all checks pass?
@@ -274,11 +281,12 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
+            // If no, then return nothing
             return null;
         }
 
-        // Return result
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), CollisionResolution.GetOBBPenetration(penetration));
+        // Return full details of the Collision list if the two collide
+        return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
     }
 
 
@@ -289,14 +297,17 @@ public class CollisionManager : MonoBehaviour
     public static CollisionInfo CircleToABBCollision(CollisionHull2D a, CollisionHull2D b)
     {
 
+        // Find the closest point to the circle from the AABB
         Vector2 closestPointToCircle = new Vector2(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)));
 
+        // Get the distance between the closest point and the circle's position
         Vector2 distance = a.GetPosition() - closestPointToCircle;
         float distanceSquared = Vector2.Dot(distance, distance);
 
+        // Calculate the penetration
         float penetration = a.GetDimensions().x - Mathf.Sqrt(distanceSquared);
 
-        // Does the check pass?
+        // Is the penetration a positive value
         if (penetration > 0)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
@@ -304,11 +315,12 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
+            // If no, return nothing
             return null;
         }
 
-        // Return result
-        return new CollisionInfo(true, b, a, CollisionResolution.CalculateSeparatingVelocity(a, b), penetration);
+        // Return full details of the Collision list if the two collide
+        return new CollisionInfo(a, b, penetration);
     }
 
 
@@ -332,12 +344,14 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
+            // If no, return nothing
             return null;
         }
 
-        // return result
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), penetration);
+        // Return full details of the Collision list if the two collide
+        return new CollisionInfo(a, b, penetration);
     }
+
 
 
 
@@ -351,36 +365,44 @@ public class CollisionManager : MonoBehaviour
         Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(a.GetRotation())), Mathf.Abs(Mathf.Cos(a.GetRotation())));
         Vector2 BUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
 
-        List<float> penetration = new List<float>();
+        // Create a list of all penetrations on each axis
+        List<float> overlaps = new List<float>();
 
         // Do axis checks
-        penetration.Add(CollisionResolution.GetBounds(a, b, ARHat));
+        overlaps.Add(CollisionResolution.GetBounds(a, b, ARHat));
         bool axisChecks = CollisionResolution.CheckOBBAxis(a, b, ARHat);
 
-        
-
+        // Does the check pass?
         if (!axisChecks)
         {
+            // If no, return nothing
             return null;
         }
 
-        penetration.Add(CollisionResolution.GetBounds(a, b, AUHat));
+        // Do axis checks
+        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
         axisChecks = CollisionResolution.CheckOBBAxis(a, b, AUHat);
 
+        // Does the check pass?
         if (!axisChecks)
         {
+            // If no, return nothing
             return null;
         }
 
-        penetration.Add(CollisionResolution.GetBounds(a, b, BRHat));
+        // Do axis checks
+        overlaps.Add(CollisionResolution.GetBounds(a, b, BRHat));
         axisChecks = CollisionResolution.CheckOBBAxis(a, b, BRHat);
 
+        // Does the check pass?
         if (!axisChecks)
         {
+            // If no, return nothing
             return null;
         }
 
-        penetration.Add(CollisionResolution.GetBounds(a, b, AUHat));
+        // Do axis checks
+        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
         axisChecks = CollisionResolution.CheckOBBAxis(a, b, BUHat);
 
         // Do the axis checks pass?
@@ -391,12 +413,17 @@ public class CollisionManager : MonoBehaviour
         }
         else
         {
+            // If no, return nothing
             return null;
         }
 
-        // return result
-        return new CollisionInfo(true, a, b, CollisionResolution.CalculateSeparatingVelocity(a, b), CollisionResolution.GetOBBPenetration(penetration));
+        // Return full details of the Collision list if the two collide
+        return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
     }
+
+
+
+
 
     // This function reports two sets of collision hulls to their respective parents (if possible)
     public static void ReportCollisionToParent(CollisionHull2D shapeA, CollisionHull2D shapeB)
