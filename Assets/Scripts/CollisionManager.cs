@@ -259,22 +259,20 @@ public class CollisionManager : MonoBehaviour
         List<float> overlaps = new List<float>();
 
         // Do axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
-        bool axisCheck = CollisionResolution.CheckOBBAxis(a, b, AUHat);
+        overlaps.Add(CheckOBBAxis(a, b, AUHat));
 
         // Do all checks pass?
-        if (!axisCheck)
+        if (overlaps[0] == Mathf.Infinity)
         {
             // If no, then return nothing
             return null;
         }
 
         // Do secondary axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, ARHat));
-        axisCheck = CollisionResolution.CheckOBBAxis(a, b, ARHat);
+        overlaps.Add(CheckOBBAxis(a, b, ARHat));
 
         // Do all checks pass?
-        if (axisCheck)
+        if (overlaps[1] != Mathf.Infinity)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
@@ -369,44 +367,40 @@ public class CollisionManager : MonoBehaviour
         List<float> overlaps = new List<float>();
 
         // Do axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, ARHat));
-        bool axisChecks = CollisionResolution.CheckOBBAxis(a, b, ARHat);
+        overlaps.Add(CheckOBBAxis(a, b, ARHat));
 
         // Does the check pass?
-        if (!axisChecks)
+        if (overlaps[0] == Mathf.Infinity)
         {
             // If no, return nothing
             return null;
         }
 
         // Do axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
-        axisChecks = CollisionResolution.CheckOBBAxis(a, b, AUHat);
+        overlaps.Add(CheckOBBAxis(a, b, AUHat));
 
         // Does the check pass?
-        if (!axisChecks)
+        if (overlaps[1] == Mathf.Infinity)
         {
             // If no, return nothing
             return null;
         }
 
         // Do axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, BRHat));
-        axisChecks = CollisionResolution.CheckOBBAxis(a, b, BRHat);
+        overlaps.Add(CheckOBBAxis(a, b, BRHat));
 
         // Does the check pass?
-        if (!axisChecks)
+        if (overlaps[2] == Mathf.Infinity)
         {
             // If no, return nothing
             return null;
         }
 
         // Do axis checks
-        overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
-        axisChecks = CollisionResolution.CheckOBBAxis(a, b, BUHat);
+        overlaps.Add(CheckOBBAxis(a, b, AUHat));
 
         // Do the axis checks pass?
-        if (axisChecks)
+        if (overlaps[3] != Mathf.Infinity)
         {
             // If yes, then inform the parents of the complex shape object (if applicable)
             ReportCollisionToParent(a, b);
@@ -436,6 +430,124 @@ public class CollisionManager : MonoBehaviour
         if (shapeB.transform.parent != null)
         {
             shapeB.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+        }
+    }
+
+
+
+
+
+    // This function checks for a collision between two objects by projecting onto a specific axis
+    public static float CheckOBBAxis(CollisionHull2D shapeA, CollisionHull2D shapeB, Vector2 rotationAxis)
+    {
+        // Create a list of all points from the OBB hull for shape A
+        List<Vector2> shapeAPoints = new List<Vector2>();
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
+        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+
+        // Create a list of all points from the OBB hull for shape B
+        List<Vector2> shapeBPoints = new List<Vector2>();
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
+        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+
+        // Initialized shape minimums and maximums
+        float shapeAMin = Mathf.Infinity;
+        float shapeAMax = -Mathf.Infinity;
+        float shapeBMin = Mathf.Infinity;
+        float shapeBMax = -Mathf.Infinity;
+
+        // Set the total minimum and maximums
+        float totalMin;
+        float totalMax;
+
+        // Initialize all points for axis checks
+        for (int i = 0; i < shapeAPoints.Count; i++)
+        {
+            // Rotate original point
+            shapeAPoints[i] = new Vector2(Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) - Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().x,
+                                          Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) + Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().y);
+
+            // Project point
+            float temp = Vector2.Dot(shapeAPoints[i], rotationAxis);
+
+            // Is the point less than the minimum?
+            if (temp < shapeAMin)
+            {
+                // If yes, set it to the new minimum
+                shapeAMin = temp;
+            }
+
+            // Is the point greater than the maximum?
+            if (temp > shapeAMax)
+            {
+                // If yes, set it to the new maximum
+                shapeAMax = temp;
+            }
+
+            // Rotate original point
+            shapeBPoints[i] = new Vector2(Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) - Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().x,
+                                          Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) + Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().y);
+
+            // Project point
+            temp = Vector2.Dot(shapeBPoints[i], rotationAxis);
+
+            // Is the point less than the minimum?
+            if (temp < shapeBMin)
+            {
+                // If yes, set it to the new minimum
+                shapeBMin = temp;
+            }
+
+            // Is the point greater than the maximum
+            if (temp > shapeBMax)
+            {
+                // If yes, set it to the new maximum
+                shapeBMax = temp;
+            }
+        }
+
+
+        // Is the B shape min greater than the A shape maximum
+        if (shapeBMin > shapeAMin)
+        {
+            // If yes, set A to the new minimum
+            totalMin = shapeAMin;
+        }
+        else
+        {
+            // If no, set B to the new minimum
+            totalMin = shapeBMin;
+        }
+
+        // Is the A shape maximum greater than the B shape maximum 
+        if (shapeBMax < shapeAMax)
+        {
+            // If yes, set A to the new maximum
+            totalMax = shapeAMax;
+        }
+        else
+        {
+            // If no, set B to the new maximum
+            totalMax = shapeBMax;
+        }
+
+        // Do axis checks
+        bool axisCheck = shapeAMin <= shapeBMax && shapeBMin <= shapeAMax;
+
+        // Does the check pass?
+        if (axisCheck)
+        {
+            // If yes, then return the penetration
+            return totalMin - totalMax;
+        }
+        else
+        {
+            // If no, return nothing
+            return Mathf.Infinity;
         }
     }
 }
