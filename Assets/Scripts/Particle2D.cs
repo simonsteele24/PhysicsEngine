@@ -22,7 +22,6 @@ public class Particle2D : MonoBehaviour
     public float outerRadius;
     public float length;
     public bool hasGravity = false;
-    public float restitiution;
 
     // Vector2's
     public Vector2 position;

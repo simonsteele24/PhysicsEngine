@@ -260,7 +260,7 @@ public class CollisionManager : MonoBehaviour
 
         // Do axis checks
         overlaps.Add(CollisionResolution.GetBounds(a, b, AUHat));
-        bool axisCheck = CollisionResolution.CheckAABBOBBAxis(a, b, AUHat);
+        bool axisCheck = CollisionResolution.CheckOBBAxis(a, b, AUHat);
 
         // Do all checks pass?
         if (!axisCheck)
@@ -271,7 +271,7 @@ public class CollisionManager : MonoBehaviour
 
         // Do secondary axis checks
         overlaps.Add(CollisionResolution.GetBounds(a, b, ARHat));
-        axisCheck = CollisionResolution.CheckAABBOBBAxis(a, b, ARHat);
+        axisCheck = CollisionResolution.CheckOBBAxis(a, b, ARHat);
 
         // Do all checks pass?
         if (axisCheck)
