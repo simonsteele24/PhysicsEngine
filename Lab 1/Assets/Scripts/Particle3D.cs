@@ -33,7 +33,7 @@ public class Particle3D : MonoBehaviour
         transform.position = position;
 
         // Update postion and velocity
-        updateRotationEulerExplicit(Time.fixedDeltaTime);
+        updateRotationKinematic(Time.fixedDeltaTime);
         updatePositionEulerExplicit(Time.fixedDeltaTime);
 
         transform.rotation = rotation;
@@ -76,7 +76,14 @@ public class Particle3D : MonoBehaviour
     // particle using the Kinematic Locomotion system
     void updateRotationKinematic(float dt)
     {
-        //rotation += angularVelocity * dt + 0.5f * angularAcceleration * Mathf.Pow(dt, 2);
+
+        Quaternion deltaTime = new Quaternion(0, 0, 0, (dt / 2.0f));
+        Quaternion temp = new Quaternion(angularVelocity.x, angularVelocity.y, angularVelocity.z, 0) * deltaTime;
+        Quaternion temp2 = new Quaternion(0, 0, 0, 0.5f) * new Quaternion(angularAcceleration.x,angularAcceleration.y,angularAcceleration.z,0) * deltaTime * deltaTime;
+        Quaternion temp3 = new Quaternion(temp.x + temp2.x, temp.y + temp2.y, temp.z + temp2.z, temp.w + temp2.w) * rotation;
+        rotation = new Quaternion(rotation.x + temp3.x, rotation.y + temp3.y, rotation.z + temp3.z, rotation.w + temp3.w).normalized;
+
+
         angularVelocity += angularAcceleration * dt;
     }
 
