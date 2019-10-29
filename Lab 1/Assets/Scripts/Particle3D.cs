@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Particle3D : MonoBehaviour
 {
+    // Booleans
+    public bool isUsingKinematicFormula = false;
+
     // Inertia - specific variables
     public Vector3 centreOfMass;
     public Vector3 boxDimensions;
@@ -20,6 +23,9 @@ public class Particle3D : MonoBehaviour
     public Vector3 angularAcceleration;
 
 
+
+
+
     private void Start()
     {
         position = transform.position;
@@ -27,17 +33,32 @@ public class Particle3D : MonoBehaviour
 
 
 
+
+
     private void FixedUpdate()
     {
-        // Change position to the positional variables
+        // Change position and rotation to the positional and rotational variables
         transform.position = position;
+        transform.rotation = rotation;
 
         // Update postion and velocity
-        updateRotationKinematic(Time.fixedDeltaTime);
-        updatePositionEulerExplicit(Time.fixedDeltaTime);
 
-        transform.rotation = rotation;
+        // Should the program update rotation using the kinematic formula?
+        if (isUsingKinematicFormula)
+        {
+            // If yes, then do so
+            updateRotationKinematic(Time.fixedDeltaTime);
+        }
+        else
+        {
+            // If no, then use the Euler Explicit formula
+            updateRotationEulerExplicit(Time.fixedDeltaTime);
+        }
+
+        updatePositionEulerExplicit(Time.fixedDeltaTime);
     }
+
+
 
 
 
@@ -51,6 +72,8 @@ public class Particle3D : MonoBehaviour
 
 
 
+
+
     // The following function calculates the new position of the
     // particle using the Kinematic Locomotion system
     void updatePositionKinematic(float dt)
@@ -61,14 +84,25 @@ public class Particle3D : MonoBehaviour
 
 
 
+
+
     // The following function calculates the new rotation of the
     // particle using the Explicit Locomotion system
     void updateRotationEulerExplicit(float dt)
     {
+        // Calculate out the whole formula for euler explicit:  q + wq dt/2
+
+        // calculate w
         Quaternion newRot = new Quaternion(angularVelocity.x, angularVelocity.y, angularVelocity.z, 0);
+
+        // wq dt/2
         Quaternion temp = (rotation * newRot) * new Quaternion(0, 0, 0, (dt / 2.0f));
+
+        // (q) + (wq dt/2) and normalize the result
         rotation = new Quaternion(temp.x + rotation.x, temp.y + rotation.y, temp.z + rotation.z, temp.w + rotation.w).normalized;
     }
+
+
 
 
 
@@ -76,16 +110,28 @@ public class Particle3D : MonoBehaviour
     // particle using the Kinematic Locomotion system
     void updateRotationKinematic(float dt)
     {
+        // Calculate out the whole formula for kinematic: q + w * q * dt + 1/2 * angularaccel * q * dt^2
 
+        // Calculate dt
         Quaternion deltaTime = new Quaternion(0, 0, 0, (dt / 2.0f));
+
+        // w * dt
         Quaternion temp = new Quaternion(angularVelocity.x, angularVelocity.y, angularVelocity.z, 0) * deltaTime;
+
+        // 1/2 w dt^2
         Quaternion temp2 = new Quaternion(0, 0, 0, 0.5f) * new Quaternion(angularAcceleration.x,angularAcceleration.y,angularAcceleration.z,0) * deltaTime * deltaTime;
+
+        //((w dt) + (1/2 w dt^2))  * q
         Quaternion temp3 = new Quaternion(temp.x + temp2.x, temp.y + temp2.y, temp.z + temp2.z, temp.w + temp2.w) * rotation;
+
+        //q + (((w dt) + (1/2 w dt^2))  * q) and normalize the result
         rotation = new Quaternion(rotation.x + temp3.x, rotation.y + temp3.y, rotation.z + temp3.z, rotation.w + temp3.w).normalized;
 
-
+        // Change Angular velocity as well
         angularVelocity += angularAcceleration * dt;
     }
+
+
 
 
 

@@ -152,13 +152,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcfa2619c0bcfc546a4245faee366836, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isUsingKinematicFormula: 1
   centreOfMass: {x: 0, y: 0, z: 0}
   boxDimensions: {x: 0.5, y: 0.5, z: 0.5}
   position: {x: 0, y: 0, z: 0}
-  velocity: {x: 0, y: 0, z: 0}
+  velocity: {x: 3, y: 0, z: 0}
   acceleration: {x: 0, y: 0, z: 0}
   rotation: {x: 0, y: 0, z: 0, w: 0}
-  angularVelocity: {x: 0, y: 0, z: 0}
+  angularVelocity: {x: 5, y: 0, z: 0}
   angularAcceleration: {x: 0, y: 0, z: 0}
 --- !u!65 &441691274
 BoxCollider:
