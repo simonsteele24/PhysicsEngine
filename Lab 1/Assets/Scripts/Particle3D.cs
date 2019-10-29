@@ -48,14 +48,14 @@ public class Particle3D : MonoBehaviour
         {
             // If yes, then do so
             updateRotationKinematic(Time.fixedDeltaTime);
+            updatePositionEulerExplicit(Time.fixedDeltaTime);
         }
         else
         {
             // If no, then use the Euler Explicit formula
             updateRotationEulerExplicit(Time.fixedDeltaTime);
+            updatePositionKinematic(Time.deltaTime);
         }
-
-        updatePositionEulerExplicit(Time.fixedDeltaTime);
     }
 
 
