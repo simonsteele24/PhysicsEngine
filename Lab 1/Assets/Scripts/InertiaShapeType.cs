@@ -15,3 +15,11 @@ public enum ShapeType
     Disk,
     ThinRod
 }
+
+public enum ThirdDimensionalShapeType 
+{
+    Cube,
+    Sphere,
+    Cylinder,
+    Cone
+}
