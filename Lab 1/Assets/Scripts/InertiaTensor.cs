@@ -103,9 +103,9 @@ public class InertiaTensor : MonoBehaviour
     // This function gets the inertia tensor for a solid cylinder
     public static Matrix4x4 GetSolidCylinderInertiaTensor(Particle3D particle)
     {
-        return new Matrix4x4(new Vector4((1.0f / 12.0f) * particle.mass * (3 * (particle.radius * particle.radius) + (particle.height * particle.height)), 0, 0, 0),
-                             new Vector4(0, (1.0f / 12.0f) * particle.mass * (3 * (particle.radius * particle.radius) + (particle.height * particle.height)), 0, 0),
-                             new Vector4(0, 0, (1.0f / 2.0f) * particle.mass * (particle.radius * particle.radius), 0),
+        return new Matrix4x4(new Vector4(-(1.0f / 12.0f) * particle.mass * (3 * (particle.radius * particle.radius) + (particle.height * particle.height)), 0, 0, 0),
+                             new Vector4(0, -(1.0f / 12.0f) * particle.mass * (3 * (particle.radius * particle.radius) + (particle.height * particle.height)), 0, 0),
+                             new Vector4(0, 0, -(1.0f / 2.0f) * particle.mass * (particle.radius * particle.radius), 0),
                              new Vector4(0, 0, 0, 1));
     }
 }
