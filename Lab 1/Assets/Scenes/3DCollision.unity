@@ -239,6 +239,7 @@ GameObject:
   - component: {fileID: 364949860}
   - component: {fileID: 364949859}
   - component: {fileID: 364949858}
+  - component: {fileID: 364949862}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -321,6 +322,70 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &364949862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 364949857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcfa2619c0bcfc546a4245faee366836, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isUsingKinematicFormula: 0
+  centreOfMass: {x: 0, y: 0, z: 0}
+  position: {x: 0, y: 0, z: 0}
+  velocity: {x: 0, y: 0, z: 0}
+  acceleration: {x: 0, y: 0, z: 0}
+  transformMatrix:
+    e00: 0
+    e01: 0
+    e02: 0
+    e03: 0
+    e10: 0
+    e11: 0
+    e12: 0
+    e13: 0
+    e20: 0
+    e21: 0
+    e22: 0
+    e23: 0
+    e30: 0
+    e31: 0
+    e32: 0
+    e33: 0
+  invTransformMatrix:
+    e00: 0
+    e01: 0
+    e02: 0
+    e03: 0
+    e10: 0
+    e11: 0
+    e12: 0
+    e13: 0
+    e20: 0
+    e21: 0
+    e22: 0
+    e23: 0
+    e30: 0
+    e31: 0
+    e32: 0
+    e33: 0
+  width: 0
+  height: 0
+  depth: 0
+  radius: 0
+  rotation: {x: 0, y: 0, z: 0, w: 0}
+  shape: 0
+  isHollow: 0
+  angularVelocity: {x: 0, y: 0, z: 0}
+  angularAcceleration: {x: 0, y: 0, z: 0}
+  mass: 0
+  invMass: 0
+  isGoingDownSlope: 0
+  slope: {fileID: 0}
 --- !u!1 &585894483
 GameObject:
   m_ObjectHideFlags: 0
@@ -333,6 +398,7 @@ GameObject:
   - component: {fileID: 585894486}
   - component: {fileID: 585894485}
   - component: {fileID: 585894484}
+  - component: {fileID: 585894488}
   m_Layer: 0
   m_Name: Cube (1)
   m_TagString: Untagged
@@ -415,6 +481,70 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &585894488
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 585894483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcfa2619c0bcfc546a4245faee366836, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isUsingKinematicFormula: 0
+  centreOfMass: {x: 0, y: 0, z: 0}
+  position: {x: 0, y: 0, z: 0}
+  velocity: {x: 0, y: 0, z: 0}
+  acceleration: {x: 0, y: 0, z: 0}
+  transformMatrix:
+    e00: 0
+    e01: 0
+    e02: 0
+    e03: 0
+    e10: 0
+    e11: 0
+    e12: 0
+    e13: 0
+    e20: 0
+    e21: 0
+    e22: 0
+    e23: 0
+    e30: 0
+    e31: 0
+    e32: 0
+    e33: 0
+  invTransformMatrix:
+    e00: 0
+    e01: 0
+    e02: 0
+    e03: 0
+    e10: 0
+    e11: 0
+    e12: 0
+    e13: 0
+    e20: 0
+    e21: 0
+    e22: 0
+    e23: 0
+    e30: 0
+    e31: 0
+    e32: 0
+    e33: 0
+  width: 0
+  height: 0
+  depth: 0
+  radius: 0
+  rotation: {x: 0, y: 0, z: 0, w: 0}
+  shape: 0
+  isHollow: 0
+  angularVelocity: {x: 0, y: 0, z: 0}
+  angularAcceleration: {x: 0, y: 0, z: 0}
+  mass: 0
+  invMass: 0
+  isGoingDownSlope: 0
+  slope: {fileID: 0}
 --- !u!1 &990871243
 GameObject:
   m_ObjectHideFlags: 0
@@ -504,7 +634,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 990871243}
   m_LocalRotation: {x: 0, y: 0, z: 0.2164396, w: 0.97629607}
-  m_LocalPosition: {x: 0, y: 3.49, z: 0}
+  m_LocalPosition: {x: 0, y: 1.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1001,7 +1131,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312548149}
   m_LocalRotation: {x: 0, y: 0, z: 0.2164396, w: 0.97629607}
-  m_LocalPosition: {x: 0, y: 3.49, z: 0}
+  m_LocalPosition: {x: -0.685, y: 3.49, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

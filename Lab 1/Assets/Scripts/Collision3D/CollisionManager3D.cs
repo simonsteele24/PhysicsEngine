@@ -263,43 +263,41 @@ public class CollisionManager3D : MonoBehaviour
     // This function computes AABB to OBBB collisions
     public static CollisionInfo AABBToOBBCollision(CollisionHull3D a, CollisionHull3D b)
     {
-        /*
-        // Compute the R hat and U hat for A
-        Vector2 ARHat = new Vector2((Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
-        Vector2 AUHat = new Vector2((Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
-
-        // Create a list of all penetrations from all axes
         List<float> overlaps = new List<float>();
 
-        // Do axis checks
-        overlaps.Add(CheckOBBAxis(a, b, AUHat));
+        Vector3 x1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
+        Vector3 y1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
+        Vector3 z1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
 
-        // Do all checks pass?
-        if (overlaps[0] == Mathf.Infinity)
+        Vector3 x2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
+        Vector3 y2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
+        Vector3 z2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
+
+        overlaps.Add(CheckOBBAxis(a, b, x1));
+        overlaps.Add(CheckOBBAxis(a, b, y1));
+        overlaps.Add(CheckOBBAxis(a, b, z1));
+        overlaps.Add(CheckOBBAxis(a, b, x2));
+        overlaps.Add(CheckOBBAxis(a, b, y2));
+        overlaps.Add(CheckOBBAxis(a, b, z2));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, z2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, z2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, z2)));
+
+        for (int i = 0; i < overlaps.Count; i++)
         {
-            // If no, then return nothing
-            return null;
+            if (overlaps[i] < 0)
+            {
+                return null;
+            }
         }
 
-        // Do secondary axis checks
-        overlaps.Add(CheckOBBAxis(a, b, ARHat));
-
-        // Do all checks pass?
-        if (overlaps[1] != Mathf.Infinity)
-        {
-            // If yes, then inform the parents of the complex shape object (if applicable)
-            ReportCollisionToParent(a, b);
-        }
-        else
-        {
-            // If no, then return nothing
-            return null;
-        }
-
-        // Return full details of the Collision list if the two collide
         return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
-        */
-        return null;
     }
 
 
