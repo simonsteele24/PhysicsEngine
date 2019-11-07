@@ -19,8 +19,8 @@ public class Particle3D : MonoBehaviour
     public Vector3 acceleration;
     private Vector3 force;
     private Vector3 torque;
-    private Matrix4x4 transformMatrix;
-    private Matrix4x4 invTransformMatrix;
+    public Matrix4x4 transformMatrix;
+    public Matrix4x4 invTransformMatrix;
 
     // Dimensional Variables
     public float width;
@@ -29,7 +29,7 @@ public class Particle3D : MonoBehaviour
     public float radius;
 
     // Floats
-    Quaternion rotation;
+    public Quaternion rotation;
     public ThirdDimensionalShapeType shape;
     public bool isHollow;
     public Vector3 angularVelocity;
@@ -72,7 +72,7 @@ public class Particle3D : MonoBehaviour
         Mass = mass;
         position = transform.position;
         inertiaTensor = InertiaTensor.GetInertiaTensor(this, shape, isHollow);
-        rotation = new Quaternion(0, 0, 0, 1);
+        rotation = transform.rotation;
     }
 
 

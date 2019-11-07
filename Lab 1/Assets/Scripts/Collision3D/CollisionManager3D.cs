@@ -377,65 +377,41 @@ public class CollisionManager3D : MonoBehaviour
     // This function calculates OBB to OBB colisions
     public static CollisionInfo OBBToOBBCollision(CollisionHull3D a, CollisionHull3D b)
     {
-        /*
-        // Compute the R hat and U hat for both collision hulls
-        Vector2 ARHat = new Vector2(Mathf.Abs(Mathf.Cos(a.GetRotation())), Mathf.Abs(-Mathf.Sin(a.GetRotation())));
-        Vector2 BRHat = new Vector2(Mathf.Abs(Mathf.Cos(b.GetRotation())), Mathf.Abs(-Mathf.Sin(b.GetRotation())));
-        Vector2 AUHat = new Vector2(Mathf.Abs(Mathf.Sin(a.GetRotation())), Mathf.Abs(Mathf.Cos(a.GetRotation())));
-        Vector2 BUHat = new Vector2(Mathf.Abs(Mathf.Sin(b.GetRotation())), Mathf.Abs(Mathf.Cos(b.GetRotation())));
-
-        // Create a list of all penetrations on each axis
         List<float> overlaps = new List<float>();
 
-        // Do axis checks
-        overlaps.Add(CheckOBBAxis(a, b, ARHat));
+        Vector3 x1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
+        Vector3 y1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
+        Vector3 z1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
 
-        // Does the check pass?
-        if (overlaps[0] == Mathf.Infinity)
+        Vector3 x2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
+        Vector3 y2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
+        Vector3 z2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
+
+        overlaps.Add(CheckOBBAxis(a, b, x1));
+        overlaps.Add(CheckOBBAxis(a, b, y1));
+        overlaps.Add(CheckOBBAxis(a, b, z1));
+        overlaps.Add(CheckOBBAxis(a, b, x2));
+        overlaps.Add(CheckOBBAxis(a, b, y2));
+        overlaps.Add(CheckOBBAxis(a, b, z2));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, z2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, z2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, x2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, y2)));
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, z2)));
+        
+        for (int i = 0; i < overlaps.Count; i++)
         {
-            // If no, return nothing
-            return null;
+            if (overlaps[i] < 0)
+            {
+                return null;
+            }
         }
 
-        // Do axis checks
-        overlaps.Add(CheckOBBAxis(a, b, AUHat));
-
-        // Does the check pass?
-        if (overlaps[1] == Mathf.Infinity)
-        {
-            // If no, return nothing
-            return null;
-        }
-
-        // Do axis checks
-        overlaps.Add(CheckOBBAxis(a, b, BRHat));
-
-        // Does the check pass?
-        if (overlaps[2] == Mathf.Infinity)
-        {
-            // If no, return nothing
-            return null;
-        }
-
-        // Do axis checks
-        overlaps.Add(CheckOBBAxis(a, b, AUHat));
-
-        // Do the axis checks pass?
-        if (overlaps[3] != Mathf.Infinity)
-        {
-            // If yes, then inform the parents of the complex shape object (if applicable)
-            ReportCollisionToParent(a, b);
-        }
-        else
-        {
-            // If no, return nothing
-            return null;
-        }
-
-        // Return full details of the Collision list if the two collide
         return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
-        */
-        return null;
     }
 
 
@@ -461,119 +437,21 @@ public class CollisionManager3D : MonoBehaviour
 
 
     // This function checks for a collision between two objects by projecting onto a specific axis
-    public static float CheckOBBAxis(CollisionHull3D shapeA, CollisionHull3D shapeB, Vector2 rotationAxis)
+    public static float CheckOBBAxis(CollisionHull3D shapeA, CollisionHull3D shapeB, Vector3 rotationAxis)
     {
-        /*
-        // Create a list of all points from the OBB hull for shape A
-        List<Vector2> shapeAPoints = new List<Vector2>();
-        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x - shapeA.GetDimensions().x, shapeA.GetPosition().y + shapeA.GetDimensions().y));
-        shapeAPoints.Add(new Vector2(shapeA.GetPosition().x + shapeA.GetDimensions().x, shapeA.GetPosition().y - shapeA.GetDimensions().y));
+        float one = transformToOBBAxis(shapeA, rotationAxis);
+        float two = transformToOBBAxis(shapeB, rotationAxis);
 
-        // Create a list of all points from the OBB hull for shape B
-        List<Vector2> shapeBPoints = new List<Vector2>();
-        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x - shapeB.GetDimensions().x, shapeB.GetPosition().y + shapeB.GetDimensions().y));
-        shapeBPoints.Add(new Vector2(shapeB.GetPosition().x + shapeB.GetDimensions().x, shapeB.GetPosition().y - shapeB.GetDimensions().y));
+        float distance = Mathf.Abs(Vector3.Dot(shapeB.GetPosition() - shapeA.GetPosition(),rotationAxis));
 
-        // Initialized shape minimums and maximums
-        float shapeAMin = Mathf.Infinity;
-        float shapeAMax = -Mathf.Infinity;
-        float shapeBMin = Mathf.Infinity;
-        float shapeBMax = -Mathf.Infinity;
-
-        // Set the total minimum and maximums
-        float totalMin;
-        float totalMax;
-
-        // Initialize all points for axis checks
-        for (int i = 0; i < shapeAPoints.Count; i++)
-        {
-            // Rotate original point
-            shapeAPoints[i] = new Vector2(Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) - Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().x,
-                                          Mathf.Sin(shapeA.GetRotation()) * (shapeAPoints[i].x - shapeA.GetPosition().x) + Mathf.Cos(shapeA.GetRotation()) * (shapeAPoints[i].y - shapeA.GetPosition().y) + shapeA.GetPosition().y);
-
-            // Project point
-            float temp = Vector2.Dot(shapeAPoints[i], rotationAxis);
-
-            // Is the point less than the minimum?
-            if (temp < shapeAMin)
-            {
-                // If yes, set it to the new minimum
-                shapeAMin = temp;
-            }
-
-            // Is the point greater than the maximum?
-            if (temp > shapeAMax)
-            {
-                // If yes, set it to the new maximum
-                shapeAMax = temp;
-            }
-
-            // Rotate original point
-            shapeBPoints[i] = new Vector2(Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) - Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().x,
-                                          Mathf.Sin(shapeB.GetRotation()) * (shapeBPoints[i].x - shapeB.GetPosition().x) + Mathf.Cos(shapeB.GetRotation()) * (shapeBPoints[i].y - shapeB.GetPosition().y) + shapeB.GetPosition().y);
-
-            // Project point
-            temp = Vector2.Dot(shapeBPoints[i], rotationAxis);
-
-            // Is the point less than the minimum?
-            if (temp < shapeBMin)
-            {
-                // If yes, set it to the new minimum
-                shapeBMin = temp;
-            }
-
-            // Is the point greater than the maximum
-            if (temp > shapeBMax)
-            {
-                // If yes, set it to the new maximum
-                shapeBMax = temp;
-            }
-        }
+        return one + two - distance;
+    }
 
 
-        // Is the B shape min greater than the A shape maximum
-        if (shapeBMin > shapeAMin)
-        {
-            // If yes, set A to the new minimum
-            totalMin = shapeAMin;
-        }
-        else
-        {
-            // If no, set B to the new minimum
-            totalMin = shapeBMin;
-        }
-
-        // Is the A shape maximum greater than the B shape maximum 
-        if (shapeBMax < shapeAMax)
-        {
-            // If yes, set A to the new maximum
-            totalMax = shapeAMax;
-        }
-        else
-        {
-            // If no, set B to the new maximum
-            totalMax = shapeBMax;
-        }
-
-        // Do axis checks
-        bool axisCheck = shapeAMin <= shapeBMax && shapeBMin <= shapeAMax;
-
-        // Does the check pass?
-        if (axisCheck)
-        {
-            // If yes, then return the penetration
-            return totalMin - totalMax;
-        }
-        else
-        {
-            // If no, return nothing
-            return Mathf.Infinity;
-        }
-        */
-        return 0.0f;
+    public static float transformToOBBAxis(CollisionHull3D shape, Vector3 rotationAxis)
+    {
+        return shape.GetDimensions() * Mathf.Abs(Vector3.Dot(shape.GetComponent<Particle3D>().transformMatrix.GetColumn(0), rotationAxis)) +
+               shape.GetDimensions() * Mathf.Abs(Vector3.Dot(shape.GetComponent<Particle3D>().transformMatrix.GetColumn(1), rotationAxis)) +
+               shape.GetDimensions() * Mathf.Abs(Vector3.Dot(shape.GetComponent<Particle3D>().transformMatrix.GetColumn(2), rotationAxis));
     }
 }
