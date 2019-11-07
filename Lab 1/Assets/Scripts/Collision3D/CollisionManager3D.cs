@@ -187,17 +187,16 @@ public class CollisionManager3D : MonoBehaviour
     // This function computes AABB to AABB collisions
     public static CollisionInfo AABBToAABBCollision(CollisionHull3D a, CollisionHull3D b)
     {
-        /*
         // Get the penetration values for both axes
         float penetration = 0.0f;
 
         // Calculate half extents along x axis for each object
-        float a_extent = a.GetDimensions().x;
-        float b_extent = b.GetDimensions().x;
+        float a_extent = a.GetDimensions();
+        float b_extent = b.GetDimensions();
 
         // Get the distance between a and b
-        Vector2 n = (b.GetPosition() - a.GetPosition());
-        n = new Vector2(Mathf.Abs(n.x), Mathf.Abs(n.y));
+        Vector3 n = (b.GetPosition() - a.GetPosition());
+        n = new Vector3(Mathf.Abs(n.x), Mathf.Abs(n.y), Mathf.Abs(n.z));
 
         // Calculate overlap on x axis
         float x_overlap = a_extent + b_extent - Mathf.Abs(n.x);
@@ -206,8 +205,8 @@ public class CollisionManager3D : MonoBehaviour
         if (x_overlap > 0)
         {
             // Calculate half extents along x axis for each object
-            a_extent = a.GetDimensions().y;
-            b_extent = b.GetDimensions().y;
+            a_extent = a.GetDimensions();
+            b_extent = b.GetDimensions();
 
             // Calculate overlap on y axis
             float y_overlap = a_extent + b_extent - Mathf.Abs(n.y);
@@ -215,16 +214,28 @@ public class CollisionManager3D : MonoBehaviour
             // SAT test on y axis
             if (y_overlap > 0)
             {
-                // Find out which axis is axis of least penetration
-                if (x_overlap > y_overlap)
+                a_extent = a.GetDimensions();
+                b_extent = b.GetDimensions();
+
+                float z_overlap = a_extent + b_extent - Mathf.Abs(n.z);
+
+                if (z_overlap > 0)
                 {
-                    // If it is Y, then return Y's overlap
-                    penetration = y_overlap;
-                }
-                else
-                {
-                    // If it is Y, then return X's overlap
-                    penetration = x_overlap;
+                    // Find out which axis is axis of least penetration
+                    if (x_overlap > y_overlap && x_overlap > z_overlap)
+                    {
+                        // If it is Y, then return Y's overlap
+                        penetration = y_overlap;
+                    }
+                    else if (y_overlap > z_overlap)
+                    {
+                        // If it is Y, then return X's overlap
+                        penetration = x_overlap;
+                    }
+                    else
+                    {
+                        penetration = z_overlap;
+                    }
                 }
             }
         }
@@ -243,8 +254,6 @@ public class CollisionManager3D : MonoBehaviour
 
         // Return full details of the Collision list if the two collide
         return new CollisionInfo(a, b, penetration);
-        */
-        return null;
     }
 
 
