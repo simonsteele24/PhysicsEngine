@@ -8,13 +8,13 @@ public abstract class CollisionHull3D : MonoBehaviour
     // Vector 2's
     protected bool isAlreadyColliding;
     protected float rotation;
-    protected Vector2 minCorner;
-    protected Vector2 maxCorner;
+    protected Vector3 minCorner;
+    protected Vector3 maxCorner;
     [HideInInspector] protected Vector3 position;
 
-    public Vector2 GetMinimumCorner() { return minCorner; }
+    public Vector3 GetMinimumCorner() { return minCorner; }
 
-    public Vector2 GetMaximumCorner() { return maxCorner; }
+    public Vector3 GetMaximumCorner() { return maxCorner; }
 
     public Vector3 GetPosition() { return position; }
 

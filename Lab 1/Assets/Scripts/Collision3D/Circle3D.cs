@@ -24,7 +24,7 @@ public class Circle3D : CollisionHull3D
     void Update()
     {
         position = transform.position;
-        minCorner = new Vector2(position.x - radius, position.y - radius);
-        maxCorner = new Vector2(position.x + radius, position.y + radius);
+        minCorner = new Vector3(position.x - radius, position.y - radius, position.z - radius);
+        maxCorner = new Vector3(position.x + radius, position.y + radius, position.z + radius);
     }
 }

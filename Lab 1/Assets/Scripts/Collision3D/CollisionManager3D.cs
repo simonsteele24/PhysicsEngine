@@ -307,16 +307,13 @@ public class CollisionManager3D : MonoBehaviour
     // This function calculates Circle to OBB collisions
     public static CollisionInfo CircleToABBCollision(CollisionHull3D a, CollisionHull3D b)
     {
-        /*
-        // Find the closest point to the circle from the AABB
-        Vector2 closestPointToCircle = new Vector2(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)));
+        Vector3 relativeCentre = b.GetComponent<Particle3D>().invTransformMatrix * a.transform.position;
 
-        // Get the distance between the closest point and the circle's position
-        Vector2 distance = a.GetPosition() - closestPointToCircle;
-        float distanceSquared = Vector2.Dot(distance, distance);
+        Vector3 closestPointToCircle = new Vector3(Math.Max(b.GetMinimumCorner().x, Math.Min(a.GetPosition().x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(a.GetPosition().y, b.GetMaximumCorner().y)), Math.Max(b.GetMinimumCorner().z, Math.Min(a.GetPosition().z, b.GetMaximumCorner().z)));
 
-        // Calculate the penetration
-        float penetration = a.GetDimensions().x - Mathf.Sqrt(distanceSquared);
+        Vector3 distance = a.GetPosition() - closestPointToCircle;
+        float distanceSquared = Vector3.Dot(distance, distance);
+        float penetration = a.GetDimensions() - Mathf.Sqrt(distanceSquared);
 
         // Is the penetration a positive value
         if (penetration > 0)
@@ -332,8 +329,6 @@ public class CollisionManager3D : MonoBehaviour
 
         // Return full details of the Collision list if the two collide
         return new CollisionInfo(a, b, penetration);
-        */
-        return null;
     }
 
 

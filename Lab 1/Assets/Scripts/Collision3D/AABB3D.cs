@@ -17,8 +17,8 @@ public class AABB3D : CollisionHull3D
         // Initialize position of Collision hull
         position = transform.position;
 
-        minCorner = new Vector2(position.x - halfLength, position.y - halfWidth);
-        maxCorner = new Vector2(position.x + halfLength, position.y + halfWidth);
+        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
+        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
 
         // Add hull to hull list
         CollisionManager3D.manager.InsertToParticleList(this);
@@ -30,7 +30,7 @@ public class AABB3D : CollisionHull3D
     void Update()
     {
         position = transform.position;
-        minCorner = new Vector2(position.x - halfLength, position.y - halfWidth);
-        maxCorner = new Vector2(position.x + halfLength, position.y + halfWidth);
+        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
+        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
     }
 }
