@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Circle3D : CollisionHull3D
+public class Sphere : CollisionHull3D
 {
     public float radius;
 
     // Start is called before the first frame update
     void Start()
     {
-        collisionType = CollisionHullType3D.Circle;
+        collisionType = CollisionHullType3D.Sphere;
 
         // Initialize position of Collision hull
         position = transform.position;

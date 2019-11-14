@@ -13,7 +13,7 @@ public class Particle3D : MonoBehaviour
     private Matrix4x4 inertiaTensor;
     private float inverseInertia;
 
-    // Vector2's
+    // Vector3's
     public Vector3 position;
     public Vector3 velocity;
     public Vector3 acceleration;

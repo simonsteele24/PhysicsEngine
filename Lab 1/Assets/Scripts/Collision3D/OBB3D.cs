@@ -16,6 +16,9 @@ public class OBB3D : CollisionHull3D
         // Initialize position of Collision hull
         position = transform.position;
 
+        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
+        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
+
         // Add hull to hull list
         CollisionManager3D.manager.InsertToParticleList(this);
     }
@@ -32,7 +35,7 @@ public class OBB3D : CollisionHull3D
         Vector3 originalMin = new Vector3(transform.position.x - halfLength, transform.position.y - halfWidth,0);
         Vector3 originalMax = new Vector3(transform.position.x + halfLength, transform.position.y + halfWidth,0);
 
-        minCorner = Quaternion.Euler(0,0,rotation) * (originalMin - transform.position) + transform.position;
-        maxCorner = Quaternion.Euler(0,0,rotation) * (originalMax - transform.position) + transform.position;
+        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
+        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
     }
 }

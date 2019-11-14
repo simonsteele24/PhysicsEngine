@@ -5,7 +5,7 @@ using UnityEngine;
 // Collision Hull type enum
 public enum CollisionHullType3D
 {
-    Circle,
+    Sphere,
     AABB,
     OBBB
 }
@@ -16,7 +16,7 @@ public class CollisionManager3D : MonoBehaviour
     public class CollisionInfo
     {
         // Vector2's
-        public Vector2 normal;
+        public Vector3 normal;
 
         // Floats
         public float separatingVelocity;
@@ -76,11 +76,11 @@ public class CollisionManager3D : MonoBehaviour
         collisions = new List<CollisionInfo>();
         manager = this;
 
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Circle, CollisionHullType3D.Circle), CircleToCircleCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Sphere, CollisionHullType3D.Sphere), CircleToCircleCollision);
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.AABB, CollisionHullType3D.AABB), AABBToAABBCollision);
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.OBBB, CollisionHullType3D.OBBB), OBBToOBBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Circle, CollisionHullType3D.OBBB), CircleToOBBCollision);
-        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Circle, CollisionHullType3D.AABB), CircleToABBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Sphere, CollisionHullType3D.OBBB), CircleToOBBCollision);
+        _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.Sphere, CollisionHullType3D.AABB), CircleToABBCollision);
         _collisionTypeCollisionTestFunctions.Add(new CollisionPairKey3D(CollisionHullType3D.AABB, CollisionHullType3D.OBBB), AABBToOBBCollision);
     }
 
@@ -95,6 +95,7 @@ public class CollisionManager3D : MonoBehaviour
         for (int i = 0; i < particles.Count; i++)
         {
             particles[i].ResetCollidingChecker();
+            particles[i].GetComponent<Renderer>().material.SetColor("_Color", Color.red);
         }
 
         // Iterate through all particles
@@ -132,9 +133,10 @@ public class CollisionManager3D : MonoBehaviour
 
                         if (!isDuplicate)
                         {
-                            Debug.Log("Hitting!");
-                            Debug.Log(collision.a.name + ", " + collision.b.name);
-                            //collisions.Add(collision);
+                            collision.a.GetComponent<Renderer>().material.SetColor("_Color", Color.green);
+                            collision.b.GetComponent<Renderer>().material.SetColor("_Color", Color.green);
+
+                            collisions.Add(collision);
                         }
                     }
                 }
@@ -163,7 +165,7 @@ public class CollisionManager3D : MonoBehaviour
         // Calculate the distance between both colliders
         Vector3 distance = a.GetPosition() - b.GetPosition();
 
-        float penetration = a.GetDimensions() + b.GetDimensions() * (a.GetDimensions() + b.GetDimensions()) - Vector2.Dot(distance, distance);
+        float penetration = a.GetDimensions() + b.GetDimensions() * (a.GetDimensions() + b.GetDimensions()) - Vector3.Dot(distance, distance);
 
         // Are the Radii less than or equal to the distance between both circles?
         if (penetration > 0)
@@ -266,6 +268,7 @@ public class CollisionManager3D : MonoBehaviour
     {
         List<float> overlaps = new List<float>();
 
+        // Get the transform values for each axis for each shape
         Vector3 x1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
         Vector3 y1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
         Vector3 z1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
@@ -274,30 +277,54 @@ public class CollisionManager3D : MonoBehaviour
         Vector3 y2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
         Vector3 z2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
 
+        // Go through and check through all overlapping axes
         overlaps.Add(CheckOBBAxis(a, b, x1));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, y1));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, z1));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, x2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, y2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, z2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
         overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
 
-        for (int i = 0; i < overlaps.Count; i++)
-        {
-            if (overlaps[i] < 0)
-            {
-                return null;
-            }
-        }
-
+        // If all axis are overlaping, then we have a collision
+        ReportCollisionToParent(a, b);
         return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
     }
 
@@ -308,6 +335,7 @@ public class CollisionManager3D : MonoBehaviour
     // This function calculates Circle to OBB collisions
     public static CollisionInfo CircleToABBCollision(CollisionHull3D a, CollisionHull3D b)
     {
+        // Find the relative centre by transforming the center of the circle to the local space of the AABB
         Vector3 relativeCentre = b.GetComponent<Particle3D>().transformMatrix * a.GetPosition();
 
         Vector3 closestPointToCircle = new Vector3(Math.Max(b.GetMinimumCorner().x, Math.Min(relativeCentre.x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(relativeCentre.y, b.GetMaximumCorner().y)), Math.Max(b.GetMinimumCorner().z, Math.Min(relativeCentre.z, b.GetMaximumCorner().z)));
@@ -339,12 +367,13 @@ public class CollisionManager3D : MonoBehaviour
     // This function calculate Circle to ABB collisions
     public static CollisionInfo CircleToOBBCollision(CollisionHull3D a, CollisionHull3D b)
     {
-        Vector3 relativeCentre = b.GetComponent<Particle3D>().transformMatrix * a.transform.position;
+        // Find the relative centre by transforming the center of the circle to the local space of the OBB
+        Vector3 relativeCentre = b.GetComponent<Particle3D>().invTransformMatrix * a.GetPosition();
 
         Vector3 closestPointToCircle = new Vector3(Math.Max(b.GetMinimumCorner().x, Math.Min(relativeCentre.x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(relativeCentre.y, b.GetMaximumCorner().y)), Math.Max(b.GetMinimumCorner().z, Math.Min(relativeCentre.z, b.GetMaximumCorner().z)));
 
         Vector3 distance = relativeCentre - closestPointToCircle;
-        float distanceSquared = Vector2.Dot(distance, distance);
+        float distanceSquared = Vector3.Dot(distance, distance);
         float penetration = a.GetDimensions() - Mathf.Sqrt(distanceSquared);
 
         // Does the check pass?
@@ -372,6 +401,7 @@ public class CollisionManager3D : MonoBehaviour
     {
         List<float> overlaps = new List<float>();
 
+        // Get the transform values for each axis for each shape
         Vector3 x1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(0);
         Vector3 y1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
         Vector3 z1 = a.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
@@ -380,30 +410,54 @@ public class CollisionManager3D : MonoBehaviour
         Vector3 y2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(1);
         Vector3 z2 = b.GetComponent<Particle3D>().transformMatrix.GetColumn(2);
 
+        // Go through and check through all overlapping axes
         overlaps.Add(CheckOBBAxis(a, b, x1));
-        overlaps.Add(CheckOBBAxis(a, b, y1));
-        overlaps.Add(CheckOBBAxis(a, b, z1));
-        overlaps.Add(CheckOBBAxis(a, b, x2));
-        overlaps.Add(CheckOBBAxis(a, b, y2));
-        overlaps.Add(CheckOBBAxis(a, b, z2));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, x2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, y2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, z2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, x2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, y2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, z2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, x2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, y2)));
-        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, z2)));
-        
-        for (int i = 0; i < overlaps.Count; i++)
-        {
-            if (overlaps[i] < 0)
-            {
-                return null;
-            }
-        }
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
 
+        overlaps.Add(CheckOBBAxis(a, b, y1));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, z1));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, x2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, y2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, z2));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(x1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(y1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, x2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, y2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        overlaps.Add(CheckOBBAxis(a, b, Vector3.Cross(z1, z2)));
+        if (overlaps[overlaps.Count - 1] < 0) { return null; }
+
+        // If all axis are overlaping, then we have a collision
+        ReportCollisionToParent(a, b);
         return new CollisionInfo(a, b, CollisionResolution.GetFinalPenetration(overlaps));
     }
 
@@ -417,11 +471,12 @@ public class CollisionManager3D : MonoBehaviour
         // If yes, then inform the parents of the complex shape object (if applicable)
         if (shapeA.transform.parent != null)
         {
-            shapeA.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+
+            shapeA.GetComponentInParent<ParentCollisionScript3D>().ReportCollisionToParent();
         }
         if (shapeB.transform.parent != null)
         {
-            shapeB.GetComponentInParent<ParentCollisionScript>().ReportCollisionToParent();
+            shapeB.GetComponentInParent<ParentCollisionScript3D>().ReportCollisionToParent();
         }
     }
 

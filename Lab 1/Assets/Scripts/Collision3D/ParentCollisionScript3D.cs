@@ -9,7 +9,7 @@ public class ParentCollisionScript3D : MonoBehaviour
         {
             // Change all of their colors to green to show that they are touching
             transform.GetChild(i).GetComponent<Renderer>().material.SetColor("_Color", Color.green);
-            transform.GetChild(i).GetComponent<CollisionHull3D>().ToggleCollidingChecker();
+            //transform.GetChild(i).GetComponent<CollisionHull3D>().ToggleCollidingChecker();
         }
     }
 }
