@@ -5,8 +5,7 @@ using UnityEngine;
 public class OBB3D : CollisionHull3D
 {
     // Floats
-    public float halfLength;
-    public float halfWidth;
+    public float halfSize = 0.5f;
 
     // Start is called before the first frame update
     void Start()
@@ -16,26 +15,20 @@ public class OBB3D : CollisionHull3D
         // Initialize position of Collision hull
         position = transform.position;
 
-        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
-        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
+        minCorner = new Vector3(-halfSize, -halfSize, -halfSize);
+        maxCorner = new Vector3(halfSize, halfSize, halfSize);
 
         // Add hull to hull list
         CollisionManager3D.manager.InsertToParticleList(this);
     }
 
 
-    public override float GetDimensions() { return halfLength; }
+    public override float GetDimensions() { return halfSize; }
 
     // Update is called once per frame
     void Update()
     {
         position = transform.position;
         rotation = transform.eulerAngles.z;
-
-        Vector3 originalMin = new Vector3(transform.position.x - halfLength, transform.position.y - halfWidth,0);
-        Vector3 originalMax = new Vector3(transform.position.x + halfLength, transform.position.y + halfWidth,0);
-
-        minCorner = new Vector3(position.x - halfLength, position.y - halfWidth, position.z - halfWidth);
-        maxCorner = new Vector3(position.x + halfLength, position.y + halfWidth, position.z + halfWidth);
     }
 }

@@ -336,7 +336,7 @@ public class CollisionManager3D : MonoBehaviour
     public static CollisionInfo CircleToABBCollision(CollisionHull3D a, CollisionHull3D b)
     {
         // Find the relative centre by transforming the center of the circle to the local space of the AABB
-        Vector3 relativeCentre = b.GetComponent<Particle3D>().transformMatrix * a.GetPosition();
+        Vector3 relativeCentre = b.GetComponent<Particle3D>().invTransformMatrix.MultiplyPoint(a.GetPosition());
 
         Vector3 closestPointToCircle = new Vector3(Math.Max(b.GetMinimumCorner().x, Math.Min(relativeCentre.x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(relativeCentre.y, b.GetMaximumCorner().y)), Math.Max(b.GetMinimumCorner().z, Math.Min(relativeCentre.z, b.GetMaximumCorner().z)));
 
@@ -368,7 +368,7 @@ public class CollisionManager3D : MonoBehaviour
     public static CollisionInfo CircleToOBBCollision(CollisionHull3D a, CollisionHull3D b)
     {
         // Find the relative centre by transforming the center of the circle to the local space of the OBB
-        Vector3 relativeCentre = b.GetComponent<Particle3D>().invTransformMatrix * a.GetPosition();
+        Vector3 relativeCentre = b.GetComponent<Particle3D>().invTransformMatrix.MultiplyPoint(a.GetPosition());
 
         Vector3 closestPointToCircle = new Vector3(Math.Max(b.GetMinimumCorner().x, Math.Min(relativeCentre.x, b.GetMaximumCorner().x)), Math.Max(b.GetMinimumCorner().y, Math.Min(relativeCentre.y, b.GetMaximumCorner().y)), Math.Max(b.GetMinimumCorner().z, Math.Min(relativeCentre.z, b.GetMaximumCorner().z)));
 
