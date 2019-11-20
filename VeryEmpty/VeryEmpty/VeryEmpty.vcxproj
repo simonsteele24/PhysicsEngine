@@ -157,10 +157,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="mainFile.h" />
+    <ClInclude Include="Particle3D.h" />
     <ClInclude Include="PhysicsWorld.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mainFile.cpp" />
+    <ClCompile Include="Particle3D.cpp" />
     <ClCompile Include="PhysicsWorld.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
