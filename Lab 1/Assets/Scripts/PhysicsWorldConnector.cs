@@ -9,20 +9,20 @@ public class PhysicsWorldConnector : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        PhysicsNativePlugin.CreatePhysicsWorld();
+        //PhysicsNativePlugin.CreatePhysicsWorld();
     }
 
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(PhysicsNativePlugin.GetCollision());
-        float x = position.x;
-        float y = position.y;
-        float z = position.z;
+        //Debug.Log(PhysicsNativePlugin.GetCollision());
+        //float x = position.x;
+        //float y = position.y;
+        //float z = position.z;
 
-        PhysicsNativePlugin.ChangePosition(ref x, ref y, ref z);
+        //PhysicsNativePlugin.ChangePosition(ref x, ref y, ref z);
 
-        position = new Vector3(x, y, z);
-        Debug.Log(position);
+        //position = new Vector3(x, y, z);
+        //Debug.Log(position);
     }
 }

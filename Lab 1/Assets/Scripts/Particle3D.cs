@@ -28,6 +28,8 @@ public class Particle3D : MonoBehaviour
     public float depth;
     public float radius;
 
+    public int element;
+
     // Floats
     public Quaternion rotation;
     public ThirdDimensionalShapeType shape;
@@ -68,11 +70,19 @@ public class Particle3D : MonoBehaviour
 
     private void Start()
     {
+        if (!PhysicsNativePlugin.hasBeenEnabled)
+        {
+            PhysicsNativePlugin.CreatePhysicsWorld();
+            PhysicsNativePlugin.hasBeenEnabled = true;
+        }
+
         // Initialize values
         Mass = mass;
         position = transform.position;
         inertiaTensor = InertiaTensor.GetInertiaTensor(this, shape, isHollow);
         rotation = transform.rotation;
+
+        element = PhysicsNativePlugin.AddParticle(mass, position.x, position.y, position.z);
     }
 
 
@@ -85,14 +95,19 @@ public class Particle3D : MonoBehaviour
         transformMatrix = Matrix4x4.TRS(transform.position, rotation, new Vector3(1,1,1));
         invTransformMatrix = transformMatrix.inverse;
 
+        PhysicsNativePlugin.AddForce(1, 0, 0, element);
+        Vector3 newPos = position;
+        PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
+        position = newPos;
+
         // Change position and rotation to the positional and rotational variables
         transform.position = position;
-        transform.rotation = rotation;
+        //transform.rotation = rotation;
 
         // Update postion and velocity
 
         // Should the program update rotation using the kinematic formula?
-        if (isUsingKinematicFormula)
+        /*if (isUsingKinematicFormula)
         {
             // If yes, then do so
             updateRotationKinematic(Time.fixedDeltaTime);
@@ -118,6 +133,7 @@ public class Particle3D : MonoBehaviour
         // Update accelerations
         UpdateAcceleration();
         UpdateAngularAcceleration();
+        */
     }
 
 
