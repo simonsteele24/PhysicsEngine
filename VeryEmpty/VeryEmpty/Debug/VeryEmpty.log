@@ -1,0 +1,5 @@
+﻿  mainFile.cpp
+  PhysicsWorld.cpp
+C:\Users\Student\source\repos\VeryEmpty\VeryEmpty\mainFile.cpp(26,1): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
+  Generating Code...
+C:\Users\Student\source\repos\VeryEmpty\VeryEmpty\PhysicsWorld.cpp(20,1): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "pch.h"' to your source?
