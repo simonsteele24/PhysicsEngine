@@ -7,9 +7,8 @@ using Unity.Entities;
 [Serializable]
 public struct AngularVelocityData : IComponentData
 {
-    public Vector3 angularVelocity;
-    public Vector3 angularAcceleration;
-    public Vector3 torque;
-    public Matrix4x4 inertiaTensor;
-    public Matrix4x4 inverseInertiaTensor;
+    public Vector3 force;
+    public Vector3 acceleration;
+    public Vector3 velocity;
+    public float invMass;
 }

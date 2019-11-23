@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Entities;
 
 public class Particle3D : MonoBehaviour
 {
@@ -21,6 +23,8 @@ public class Particle3D : MonoBehaviour
     private Vector3 torque;
     public Matrix4x4 transformMatrix;
     public Matrix4x4 invTransformMatrix;
+    public Entity velocityEntity;
+    public EntityManager manager;
 
     // Dimensional Variables
     public float width;
@@ -70,6 +74,8 @@ public class Particle3D : MonoBehaviour
 
     private void Start()
     {
+        manager = World.Active.GetExistingManager<EntityManager>();
+
         if (!PhysicsNativePlugin.hasBeenEnabled)
         {
             PhysicsNativePlugin.CreatePhysicsWorld();
@@ -91,11 +97,16 @@ public class Particle3D : MonoBehaviour
 
     private void FixedUpdate()
     {
+        AngularVelocityData data = manager.GetComponentData<AngularVelocityData>(velocityEntity);
+        data.force = new Vector3(1, 0, 0);
+
+        Debug.Log(data.acceleration);
+
         // Set the transformation matrices
         transformMatrix = Matrix4x4.TRS(transform.position, rotation, new Vector3(1,1,1));
         invTransformMatrix = transformMatrix.inverse;
 
-        PhysicsNativePlugin.AddForce(1, 0, 0, element);
+        //PhysicsNativePlugin.AddForce(1, 0, 0, element);
         Vector3 newPos = position;
         PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
         position = newPos;
