@@ -10,14 +10,21 @@ public class AngularVelocitySystem : JobComponentSystem
 {
     // Use the [BurstCompile] attribute to compile a job with Burst. You may see significant speed ups, so try it!
     [BurstCompile]
-    struct RotationSpeedJob : IJobForEach<AngularVelocityData>
+    struct RotationSpeedJob : IJobForEach<Translation, AngularVelocityData>
     {
         public float DeltaTime;
 
         // The [ReadOnly] attribute tells the job scheduler that this job will not write to rotSpeedIJobForEach
-        public void Execute(ref AngularVelocityData rotSpeedIJobForEach)
+        public void Execute(ref Translation translation, ref AngularVelocityData rotSpeedIJobForEach)
         {
-            rotSpeedIJobForEach.acceleration += new Vector3(1, 0, 0);
+            // Update position / velocity
+            rotSpeedIJobForEach.velocity += rotSpeedIJobForEach.acceleration * DeltaTime;
+            rotSpeedIJobForEach.position += rotSpeedIJobForEach.velocity * DeltaTime;
+
+            // Update Acceleration
+            rotSpeedIJobForEach.acceleration = rotSpeedIJobForEach.force * rotSpeedIJobForEach.invMass;
+
+            translation.Value = rotSpeedIJobForEach.position;
         }
     }
 

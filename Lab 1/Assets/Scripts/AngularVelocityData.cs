@@ -11,4 +11,5 @@ public struct AngularVelocityData : IComponentData
     public Vector3 acceleration;
     public Vector3 velocity;
     public float invMass;
+    public Vector3 position;
 }

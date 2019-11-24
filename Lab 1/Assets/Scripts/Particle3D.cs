@@ -19,12 +19,10 @@ public class Particle3D : MonoBehaviour
     public Vector3 position;
     public Vector3 velocity;
     public Vector3 acceleration;
-    private Vector3 force;
+    public Vector3 force;
     private Vector3 torque;
     public Matrix4x4 transformMatrix;
     public Matrix4x4 invTransformMatrix;
-    public Entity velocityEntity;
-    public EntityManager manager;
 
     // Dimensional Variables
     public float width;
@@ -74,7 +72,6 @@ public class Particle3D : MonoBehaviour
 
     private void Start()
     {
-        manager = World.Active.GetExistingManager<EntityManager>();
 
         if (!PhysicsNativePlugin.hasBeenEnabled)
         {
@@ -97,22 +94,18 @@ public class Particle3D : MonoBehaviour
 
     private void FixedUpdate()
     {
-        AngularVelocityData data = manager.GetComponentData<AngularVelocityData>(velocityEntity);
-        data.force = new Vector3(1, 0, 0);
-
-        Debug.Log(data.acceleration);
-
         // Set the transformation matrices
         transformMatrix = Matrix4x4.TRS(transform.position, rotation, new Vector3(1,1,1));
         invTransformMatrix = transformMatrix.inverse;
 
-        //PhysicsNativePlugin.AddForce(1, 0, 0, element);
-        Vector3 newPos = position;
-        PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
-        position = newPos;
-
         // Change position and rotation to the positional and rotational variables
         transform.position = position;
+
+        //PhysicsNativePlugin.AddForce(1, 0, 0, element);
+        //Vector3 newPos = position;
+        //PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
+        //position = newPos;
+
         //transform.rotation = rotation;
 
         // Update postion and velocity
@@ -212,10 +205,10 @@ public class Particle3D : MonoBehaviour
 
 
 
-    public void AddForce(Vector3 newForce)
+    public void AddForce(Vector3 newForce, ref AngularVelocityData data)
     {
         // D'Almbert
-        force += newForce;
+        data.force += newForce;
     }
 
 
