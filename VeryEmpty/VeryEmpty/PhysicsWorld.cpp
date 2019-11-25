@@ -1,18 +1,34 @@
 #include "PhysicsWorld.h"
 
+// This function is the constructor for the class
 PhysicsWorld::PhysicsWorld()
 {
 }
 
+
+
+
+
+// This function is the destructor for the class
 PhysicsWorld::~PhysicsWorld()
 {
 }
 
+
+
+
+
+// This function updates a particle and gets the new position for the particle
 void PhysicsWorld::UpdateParticle(int element, float &x, float &y, float &z, float dt)
 {
 	particles[element].UpdateParticle(dt, x, y, z);
 }
 
+
+
+
+
+// This function adds a new particle 3D to the array
 int PhysicsWorld::AddParticle3D(float mass, float boxHeight, float boxLength, float x, float y, float z, float rX ,float rY,float rZ, float rW)
 {
 	particles.push_back(Particle3D(mass,x,y,z,rX,rY,rZ,rW));
@@ -20,22 +36,12 @@ int PhysicsWorld::AddParticle3D(float mass, float boxHeight, float boxLength, fl
 	return particleSize;
 }
 
+
+
+
+
+// This function adds a force to a specific particle 
 void PhysicsWorld::AddForceToParticle(float forceX, float forceY, float forceZ, int element) 
 {
 	particles[element].AddForce(forceX, forceY, forceZ);
-}
-
-void PhysicsWorld::ShowMeDaMonie(int(&no)[]) 
-{
-	no[0] += 1;
-}
-
-void PhysicsWorld::UpdateParticleRotation(int element, float& rotX, float& rotY, float& rotZ, float& rotW, float dt)
-{
-	particles[element].UpdateParticleRotation(rotX, rotY, rotZ, rotW, dt);
-}
-
-void PhysicsWorld::AddForceAtPoint(float posX, float posY, float posZ, float forceX, float forceY, float forceZ, float element) 
-{
-	particles[element].AddForceAtPoint(posX, posY, posZ, forceX, forceY, forceZ);
 }
