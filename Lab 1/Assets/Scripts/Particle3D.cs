@@ -101,43 +101,10 @@ public class Particle3D : MonoBehaviour
         // Change position and rotation to the positional and rotational variables
         transform.position = position;
 
-        //PhysicsNativePlugin.AddForce(1, 0, 0, element);
-        //Vector3 newPos = position;
-        //PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
-        //position = newPos;
-
-        //transform.rotation = rotation;
-
-        // Update postion and velocity
-
-        // Should the program update rotation using the kinematic formula?
-        /*if (isUsingKinematicFormula)
-        {
-            // If yes, then do so
-            updateRotationKinematic(Time.fixedDeltaTime);
-            updatePositionEulerExplicit(Time.fixedDeltaTime);
-        }
-        else
-        {
-            // If no, then use the Euler Explicit formula
-            updateRotationEulerExplicit(Time.fixedDeltaTime);
-            updatePositionKinematic(Time.deltaTime);
-        }
-
-        // Add a force at a point
-        if (isGoingDownSlope)
-        {
-            AddForceAtPoint(new Vector3(0.5f, 0.5f, 0.0f), Mass * getSlopeNormal());
-        }
-        else
-        {
-            AddForceAtPoint(new Vector3(0.1f, 0.1f, 0.0f), Mass * Vector3.right);
-        }
-
-        // Update accelerations
-        UpdateAcceleration();
-        UpdateAngularAcceleration();
-        */
+        PhysicsNativePlugin.AddForce(1, 0, 0, element);
+        Vector3 newPos = position;
+        PhysicsNativePlugin.UpdateParticle(ref newPos.x, ref newPos.y, ref newPos.z, Time.fixedDeltaTime, element);
+        position = newPos;
     }
 
 
@@ -199,16 +166,6 @@ public class Particle3D : MonoBehaviour
 
         // Change Angular velocity as well
         angularVelocity += angularAcceleration * dt;
-    }
-
-
-
-
-
-    public void AddForce(Vector3 newForce, ref AngularVelocityData data)
-    {
-        // D'Almbert
-        data.force += newForce;
     }
 
 

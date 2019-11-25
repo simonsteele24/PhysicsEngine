@@ -4,25 +4,29 @@ using Unity.Rendering;
 using Unity.Mathematics;
 using UnityEngine;
 
-public class AngularVelocitySpeedAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+public class Particle3DAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 {
+    // Floats
     public float mass;
+
+    // Vector3's
     public Vector3 force;
     public Vector3 acceleration;
     public Vector3 velocity;
     public Vector3 angularVelocity;
-    public Vector2 angularAcceleration;
+    public Vector3 angularAcceleration;
 
+    // Shapes
     public ThirdDimensionalShapeType shape;
+
+    // Booleans
     public bool isHollow;
 
-    // The MonoBehaviour data is converted to ComponentData on the entity.
-    // We are specifically transforming from a good editor representation of the data (Represented in degrees)
-    // To a good runtime representation (Represented in radians)
+    // This function gets called whenever the gameobject gets converted to an entity
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-
-        var data = new AngularVelocityData { };
+        // Calculate all initial data values
+        var data = new Particle3DData { };
         data.invMass = 1.0f / mass;
         data.position = transform.position;
         data.force = force;
@@ -32,6 +36,7 @@ public class AngularVelocitySpeedAuthoring : MonoBehaviour, IConvertGameObjectTo
         data.angularVelocity = angularVelocity;
         data.angularAcceleration = angularAcceleration;
 
+        // Add component to manager
         dstManager.AddComponentData(entity, data);
     }
 }
